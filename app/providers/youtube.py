@@ -23,6 +23,8 @@ class YouTubePublisher:
         tags: list[str],
         privacy_status: str = "private",
     ) -> dict:
+        if privacy_status not in {"private", "unlisted", "public"}:
+            raise ValueError("privacy_status must be private, unlisted, or public")
         if not self.enabled:
             return {"enabled": False, "status": "not_configured"}
 
@@ -43,8 +45,13 @@ class YouTubePublisher:
                     "description": description,
                     "tags": tags,
                     "categoryId": "24",
+                    "defaultLanguage": "hi",
+                    "defaultAudioLanguage": "hi",
                 },
-                "status": {"privacyStatus": privacy_status},
+                "status": {
+                    "privacyStatus": privacy_status,
+                    "selfDeclaredMadeForKids": True,
+                },
             },
             media_body=MediaFileUpload(str(Path(video_path)), resumable=True),
         )

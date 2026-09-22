@@ -9,9 +9,11 @@ Free-first tooling for planning and producing original Hindi children's cartoons
 - A procedural 2D renderer in `app/local_render.py`: per-frame character poses, walking motion, facial reactions, speaking mouths, props, moving garden layers, subtitles and camera push-ins.
 - An optional Higgsfield Seedance adapter. It is metered and blocked by default; scheduled runs must not call it unless `ALLOW_METERED_VIDEO_GENERATION=true` is deliberately set.
 - YouTube uploader adapters and an Apps Script bridge are present, but no end-to-end upload is wired to the scheduler. A publicly reachable video file and one-time Google authorization are still needed.
+- Both upload adapters mark videos as Made for Kids; the direct API uploader defaults to private and includes Hindi language metadata.
 - A GitHub Actions trial workflow that renders MP4s plus a clean 1280x720 episode thumbnail and a 720x1280 Short poster frame. This is a render trial, not an auto-publishing pipeline.
 - The trial renders a six-minute original Hindi episode from 12 authored story beats and a separate 40-second, four-beat Short; the Short preserves its complete 16:9 action over a moving blurred portrait background. Both outputs receive duration, dimensions, audio/video, and motion QA and are uploaded as artifacts.
 - A CI video check that requires audio/video streams and movement across one-second samples, so frozen renders fail the trial.
+- A focused Python check covers the direct YouTube upload metadata and privacy validation.
 
 The procedural renderer is a 2D cartoon prototype. It is not 3D or AI-generated video. Its default eSpeak track is a robotic preview and is not suitable for publishing. An opt-in Svara Hindi path is available for every speaking character; it uses one shared voice identity and identical pitch treatment for a consistent youthful sound. Svara is a public free ZeroGPU demo with shared quotas and no availability guarantee, so a failed request stops the render instead of silently substituting eSpeak. Listen to and approve voice quality before publishing.
 
