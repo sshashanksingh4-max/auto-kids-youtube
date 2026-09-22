@@ -1,13 +1,27 @@
 import httpx
 
 class HiggsfieldProvider:
-    def __init__(self, key_id: str | None, key_secret: str | None):
+    def __init__(
+        self,
+        key_id: str | None,
+        key_secret: str | None,
+        video_model: str = "seedance_2.0",
+        voice_id: str | None = None,
+        voice_type: str = "preset",
+    ):
         self.key_id = key_id
         self.key_secret = key_secret
+        self.video_model = video_model
+        self.voice_id = voice_id
+        self.voice_type = voice_type
 
     @property
     def enabled(self) -> bool:
         return bool(self.key_id and self.key_secret)
+
+    @property
+    def voice_enabled(self) -> bool:
+        return self.enabled and bool(self.voice_id)
 
     def headers(self) -> dict:
         return {
@@ -25,7 +39,7 @@ class HiggsfieldProvider:
     ) -> dict:
         if not self.enabled:
             return {"enabled": False, "status": "not_configured"}
-        async with httpx.AsyncClient(timeout=60) as client:
+        async with httpx.AsyncClient(timeout=120) as client:
             response = await client.post(
                 "https://api.higgsfield.ai/bytedance/seedance-2.0/text-to-video",
                 headers=self.headers(),
