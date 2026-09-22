@@ -8,16 +8,22 @@ class HiggsfieldProvider:
         video_model: str = "seedance_2.0",
         voice_id: str | None = None,
         voice_type: str = "preset",
+        allow_metered_generation: bool = False,
     ):
         self.key_id = key_id
         self.key_secret = key_secret
         self.video_model = video_model
         self.voice_id = voice_id
         self.voice_type = voice_type
+        self.allow_metered_generation = allow_metered_generation
 
     @property
     def enabled(self) -> bool:
-        return bool(self.key_id and self.key_secret)
+        return bool(self.key_id and self.key_secret and self.allow_metered_generation)
+
+    @property
+    def cost_gate_closed(self) -> bool:
+        return not self.allow_metered_generation
 
     @property
     def voice_enabled(self) -> bool:
@@ -38,7 +44,8 @@ class HiggsfieldProvider:
         generate_audio: bool = True,
     ) -> dict:
         if not self.enabled:
-            return {"enabled": False, "status": "not_configured"}
+            status = "metered_generation_disabled" if self.cost_gate_closed else "not_configured"
+            return {"enabled": False, "status": status}
         async with httpx.AsyncClient(timeout=120) as client:
             response = await client.post(
                 "https://api.higgsfield.ai/bytedance/seedance-2.0/text-to-video",

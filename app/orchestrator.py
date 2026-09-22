@@ -59,7 +59,7 @@ def run_pipeline(topic: str | None = None) -> dict:
         "topic": chosen_topic,
         "language": "hi-IN",
         "channel_type": "kids",
-        "animation_mode": "fully_animated",
+        "animation_mode": "planned_animation_not_yet_rendered",
         "started_at": datetime.now(timezone.utc).isoformat(),
         "content_plan": plan,
         "story": story,
@@ -71,6 +71,6 @@ def run_pipeline(topic: str | None = None) -> dict:
         "next_action": (
             "Generate scenes, assemble the long video and Short, then publish."
             if ready_to_execute
-            else "Connect the required provider credentials, then execute generation and publishing."
+            else "Generation is waiting for required providers; metered video generation also needs explicit approval."
         ),
     }

@@ -1,6 +1,11 @@
 name: kids-youtube-zero-cost-trial
 
 on:
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/kids-trial.yml"
+      - "requirements.txt"
   workflow_dispatch:
     inputs:
       topic:
@@ -37,6 +42,7 @@ jobs:
         run: |
           test -s /tmp/kids-video.mp4
           ffprobe -v error -show_entries format=duration,size -of default=nw=1 /tmp/kids-video.mp4
+          python -m app.video_qa /tmp/kids-video.mp4
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4

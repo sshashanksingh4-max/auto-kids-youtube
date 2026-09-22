@@ -32,6 +32,7 @@ def health():
         "providers": {
             "research": exa.api_key is not None,
             "video": higgsfield.enabled,
+            "metered_video_generation_allowed": higgsfield.allow_metered_generation,
             "voice_configured": higgsfield.voice_enabled,
             "youtube": youtube.enabled,
         },
