@@ -50,10 +50,10 @@ def synthesize_svara(text: str, voice: str, out_wav: Path) -> None:
     # Use one consistent youthful voice identity for the children and Golu so
     # the cast shares the same recording/model character. Differences remain
     # in dialogue and acting, not a jump between adult-sounding voice presets.
-    gender = {"chintu": "Female", "mini": "Female", "golu": "Female"}.get(voice)
+    gender = {"chintu": "Female", "mini": "Female", "golu": "Female", "narrator": "Female"}.get(voice)
     if gender is None:
         raise ValueError(f"Svara has no configured voice for character: {voice}")
-    style = "<happy> " if voice in ("chintu", "mini", "golu") else ""
+    style = "<clear> " if voice == "narrator" else "<happy> "
     data = ["Hindi (हिन्दी)", gender, f"{style}{text}", 0.8, 0.8, 1.1, 1200]
     with httpx.Client(timeout=httpx.Timeout(180.0, connect=20.0)) as client:
         started = client.post(f"{SVARA_SPACE}{SVARA_EVENT}", json={"data": data})

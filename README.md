@@ -26,7 +26,7 @@ python -m app.local_render
 
 The story beats currently live in `SCENES` in `app/local_render.py`. The current renderer is a visual-quality prototype; it should not publish automatically.
 
-To request Svara voices for Chintu, Mini and Golu, set `KIDS_TTS_PROVIDER=svara`. This makes one request per speaking scene to the public Svara Space. No retries or paid fallback are used. Leave `KIDS_TTS_PROVIDER` unset for the robotic eSpeak preview. Each render writes a `.voices.json` sidecar that records the provider and per-scene voice modes.
+To request Svara voices for Chintu, Mini, Golu and the narrator, set `KIDS_TTS_PROVIDER=svara`. The child cast shares one voice identity with a small pitch lift; narration uses the same female voice without the lift. This makes one request per speaking scene to the public Svara Space. No retries or paid fallback are used. Leave `KIDS_TTS_PROVIDER` unset for the robotic eSpeak preview. Each render writes a `.voices.json` sidecar that records the provider and per-scene voice modes.
 
 ## API
 
