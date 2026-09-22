@@ -8,6 +8,19 @@ app = FastAPI(
     description="Automation backend for original Hindi kids video production."
 )
 
+@app.get("/")
+def root():
+    return {
+        "status": "ok",
+        "service": "auto-kids-youtube",
+        "message": "Auto Kids YouTube API is running.",
+        "endpoints": {
+            "health": "/health",
+            "pipeline": "/pipeline/run",
+            "docs": "/docs",
+        },
+    }
+
 @app.get("/health")
 def health():
     return {
