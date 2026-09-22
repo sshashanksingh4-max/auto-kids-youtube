@@ -1,4 +1,13 @@
 from datetime import datetime, timezone
+
+from app.content_engine import (
+    make_content_plan,
+    make_metadata,
+    make_scene_plan,
+    make_story,
+    normalize_topic,
+)
+from app.quality import review_content
 from app.services import exa, higgsfield, youtube
 
 PIPELINE_STAGES = [
@@ -8,33 +17,60 @@ PIPELINE_STAGES = [
     "youtube_publish", "analytics_optimization",
 ]
 
+
 def run_pipeline(topic: str | None = None) -> dict:
-    chosen_topic = topic or "Hindi kids story: Chintu and the magic mango tree"
-    research = {"status": "queued", "provider": "exa", "topic": chosen_topic}
-    if exa.api_key:
-        research["status"] = "ready"
+    chosen_topic = normalize_topic(topic)
+    plan = make_content_plan(chosen_topic)
+    story = make_story(plan)
+    scenes = make_scene_plan(story)
+    metadata = make_metadata(story)
+    quality = review_content(story, scenes)
+
+    provider_state = {
+        "research": exa.api_key is not None,
+        "video_generation": higgsfield.enabled,
+        "youtube_upload": youtube.enabled,
+    }
+
+    stages = []
+    for stage in PIPELINE_STAGES:
+        if stage in {"content_plan", "story", "characters_and_world", "scene_plan", "quality_and_safety"}:
+            status = "ready" if quality["status"] == "passed" else "needs_review"
+        elif stage == "trend_research":
+            status = "ready" if provider_state["research"] else "waiting_for_provider"
+        elif stage == "video_generation":
+            status = "ready" if provider_state["video_generation"] else "waiting_for_provider"
+        elif stage in {"hindi_voice", "music_and_sfx", "thumbnail", "shorts_and_long_video"}:
+            status = "planned"
+        elif stage == "youtube_publish":
+            status = "ready" if provider_state["youtube_upload"] else "waiting_for_provider"
+        else:
+            status = "planned"
+        stages.append({"name": stage, "status": status})
+
+    ready_to_execute = (
+        quality["status"] == "passed"
+        and provider_state["video_generation"]
+        and provider_state["youtube_upload"]
+    )
+
     return {
-        "status": "ready_for_generation" if higgsfield.enabled else "waiting_for_provider_keys",
+        "status": "ready_for_generation" if ready_to_execute else "pipeline_built",
         "topic": chosen_topic,
-        "language": "hi",
+        "language": "hi-IN",
         "channel_type": "kids",
         "animation_mode": "fully_animated",
         "started_at": datetime.now(timezone.utc).isoformat(),
-        "stages": [
-            {
-                "name": stage,
-                "status": ("ready" if stage == "trend_research" and exa.api_key else "waiting_for_provider")
-            }
-            for stage in PIPELINE_STAGES
-        ],
-        "providers": {
-            "research": exa.api_key is not None,
-            "video_generation": higgsfield.enabled,
-            "youtube_upload": youtube.enabled,
-        },
+        "content_plan": plan,
+        "story": story,
+        "scene_plan": scenes,
+        "metadata": metadata,
+        "quality_review": quality,
+        "stages": stages,
+        "providers": provider_state,
         "next_action": (
-            "Run research, story, asset, video and publishing jobs once provider credentials are configured."
-            if not higgsfield.enabled or not youtube.enabled
-            else "Pipeline can execute."
+            "Generate scenes, assemble the long video and Short, then publish."
+            if ready_to_execute
+            else "Connect the required provider credentials, then execute generation and publishing."
         ),
     }
