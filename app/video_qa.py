@@ -87,7 +87,7 @@ def inspect_video(path: str) -> dict:
         result["voice_path_configured"] = (
             result["voice_provider"] == "svara"
             and bool(result["voice_modes"])
-            and all(mode in {"svara_child_pitch", "espeak_robot"} for mode in result["voice_modes"])
+            and all(mode == "svara_shared_youthful" for mode in result["voice_modes"])
         )
         result["human_listening_review_required"] = True
         result["voice_review_status"] = "not_recorded"
@@ -107,4 +107,8 @@ if __name__ == "__main__":
         if result["duration_seconds"] > 60:
             raise ValueError("Short output exceeds the 60-second trial limit")
         result["vertical_short_check"] = "passed"
+    if len(sys.argv) > 2 and sys.argv[2] == "--require-long":
+        if not 300 <= result["duration_seconds"] <= 420:
+            raise ValueError("Long episode must be between 5 and 7 minutes")
+        result["long_episode_check"] = "passed"
     print(json.dumps(result, ensure_ascii=False, indent=2))

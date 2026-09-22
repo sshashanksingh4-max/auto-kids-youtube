@@ -10,10 +10,10 @@ Free-first tooling for planning and producing original Hindi children's cartoons
 - An optional Higgsfield Seedance adapter. It is metered and blocked by default; scheduled runs must not call it unless `ALLOW_METERED_VIDEO_GENERATION=true` is deliberately set.
 - YouTube uploader adapters and an Apps Script bridge are present, but no end-to-end upload is wired to the scheduler. A publicly reachable video file and one-time Google authorization are still needed.
 - A GitHub Actions trial workflow that renders an MP4 artifact. This is a render trial, not an auto-publishing pipeline.
-- The trial now assembles a portrait 9:16-style Short from the animated episode while preserving the complete 16:9 scene over a moving blurred background; both long-preview and Short outputs receive MP4/motion QA and are uploaded as artifacts.
+- The trial renders a six-minute original Hindi episode from 12 authored story beats and a separate 40-second, four-beat Short; the Short preserves its complete 16:9 action over a moving blurred portrait background. Both outputs receive duration, dimensions, audio/video, and motion QA and are uploaded as artifacts.
 - A CI video check that requires audio/video streams and movement across one-second samples, so frozen renders fail the trial.
 
-The procedural renderer is a 2D cartoon prototype. It is not 3D or AI-generated video. Its default eSpeak track is a robotic preview and is not suitable for publishing. An opt-in Svara Hindi path is available for the child cast; it uses one shared voice identity and a small pitch lift for a youthful sound. Tinku remains robotic by design. Svara is a public free ZeroGPU demo with shared quotas and no availability guarantee, so a failed request stops the render instead of silently substituting eSpeak. Listen to and approve voice quality before publishing.
+The procedural renderer is a 2D cartoon prototype. It is not 3D or AI-generated video. Its default eSpeak track is a robotic preview and is not suitable for publishing. An opt-in Svara Hindi path is available for every speaking character; it uses one shared voice identity and identical pitch treatment for a consistent youthful sound. Svara is a public free ZeroGPU demo with shared quotas and no availability guarantee, so a failed request stops the render instead of silently substituting eSpeak. Listen to and approve voice quality before publishing.
 
 ## Local render
 
@@ -25,9 +25,9 @@ KIDS_OUTPUT="/tmp/kids-video.mp4" \
 python -m app.local_render
 ```
 
-The story beats currently live in `SCENES` in `app/local_render.py`. The current renderer is a visual-quality prototype; it should not publish automatically.
+The authored Hindi episode and Short beats currently live in `SCENES` and `SHORT_SCENES` in `app/local_render.py`. The renderer remains a flat 2D prototype; it should not publish automatically.
 
-To request Svara voices for Chintu, Mini, Golu and the narrator, set `KIDS_TTS_PROVIDER=svara`. The child cast shares one voice identity with a small pitch lift; narration uses the same female voice without the lift. This makes one request per speaking scene to the public Svara Space. No retries or paid fallback are used. Leave `KIDS_TTS_PROVIDER` unset for the robotic eSpeak preview. Each render writes a `.voices.json` sidecar that records the provider and per-scene voice modes.
+To request Svara voices for Chintu, Mini, Golu, Tinku and the narrator, set `KIDS_TTS_PROVIDER=svara`. Everyone uses one voice identity and the same small pitch lift; character differences come from the script and acting. This makes one request per speaking scene to the public Svara Space. No retries or paid fallback are used. Leave `KIDS_TTS_PROVIDER` unset for the robotic eSpeak preview. Each render writes a `.voices.json` sidecar that records the provider and per-scene voice modes.
 
 ## API
 

@@ -1,8 +1,8 @@
 """Hindi voice routing for the animation renderer.
 
-The built-in eSpeak voice is a preview-only fallback.  Svara can be selected
-explicitly for child dialogue; failures are raised instead of silently
-replacing a requested natural voice with robotic speech.
+The built-in eSpeak voice is a preview-only fallback. Svara can be selected
+explicitly for a consistent, youthful cast voice; failures are raised instead
+of silently replacing a requested natural voice with robotic speech.
 """
 from __future__ import annotations
 
@@ -47,14 +47,11 @@ def synthesize_svara(text: str, voice: str, out_wav: Path) -> None:
     Space has limited shared compute.  Its free-tier availability is not a
     production SLA.
     """
-    # Use one consistent youthful voice identity for the children and Golu so
-    # the cast shares the same recording/model character. Differences remain
-    # in dialogue and acting, not a jump between adult-sounding voice presets.
-    gender = {"chintu": "Female", "mini": "Female", "golu": "Female", "narrator": "Female"}.get(voice)
-    if gender is None:
-        raise ValueError(f"Svara has no configured voice for character: {voice}")
-    style = "<clear> " if voice == "narrator" else "<happy> "
-    data = ["Hindi (हिन्दी)", gender, f"{style}{text}", 0.8, 0.8, 1.1, 1200]
+    if voice not in {"chintu", "mini", "golu", "tinku", "narrator"}:
+        raise ValueError(f"Unknown Svara speaker: {voice}")
+    # Keep voice identity, emotion conditioning, and pitch treatment identical
+    # across characters. Character personality comes from the script and acting.
+    data = ["Hindi (हिन्दी)", "Female", f"<clear> {text}", 0.8, 0.8, 1.1, 1200]
     with httpx.Client(timeout=httpx.Timeout(180.0, connect=20.0)) as client:
         started = client.post(f"{SVARA_SPACE}{SVARA_EVENT}", json={"data": data})
         started.raise_for_status()
@@ -89,7 +86,7 @@ def synthesize_svara(text: str, voice: str, out_wav: Path) -> None:
         out_wav.write_bytes(audio_response.content)
 
 
-def _pitch_shift_child_voice(source: Path, destination: Path) -> None:
+def _pitch_shift_youthful_voice(source: Path, destination: Path) -> None:
     """Raise pitch ~2 semitones while restoring the original timing."""
     ratio = 2 ** (2.0 / 12.0)
     shifted_rate = round(24000 * ratio)
@@ -105,20 +102,17 @@ def synthesize_scene_voice(text: str, voice: str, out_wav: Path) -> str:
     provider = os.getenv("KIDS_TTS_PROVIDER", "preview").strip().lower()
     if provider not in {"preview", "svara"}:
         raise ValueError("KIDS_TTS_PROVIDER must be 'preview' or 'svara'")
-    if voice == "tinku" or provider == "preview":
-        # Keep the friendly robot clearly distinct; this mode is only for local
-        # previews and is explicitly reported as synthetic/robotic in metadata.
+    if provider == "preview":
+        # This mode is only for local previews and is explicitly reported as
+        # synthetic/robotic in metadata.
         subprocess.run([
             "espeak", "-v", "hi", "-s", "132", "-p", "48", "-a", "165",
             "-w", str(out_wav), text,
         ], check=True)
-        return "espeak_robot" if voice == "tinku" else "espeak_preview"
+        return "espeak_preview"
 
     raw_wav = out_wav.with_name(f"{out_wav.stem}_raw.wav")
     synthesize_svara(text, voice, raw_wav)
-    if voice in {"chintu", "mini", "golu"}:
-        _pitch_shift_child_voice(raw_wav, out_wav)
-        raw_wav.unlink(missing_ok=True)
-        return "svara_child_pitch"
-    raw_wav.replace(out_wav)
-    return "svara"
+    _pitch_shift_youthful_voice(raw_wav, out_wav)
+    raw_wav.unlink(missing_ok=True)
+    return "svara_shared_youthful"

@@ -32,17 +32,29 @@ PALETTE = {
     "cream": "#FFE0B4", "green": "#4A9C62", "white": "#FFFDF7",
 }
 
-# Each beat is a short, playable scene. Actions are interpreted by the rigs
-# below; the narration is intentionally in natural, short Hindi sentences.
+# Twelve authored beats form a six-minute original story. Each action reuses
+# the same consistent character rigs while dialogue, props and timed gestures
+# advance a complete seed-to-garden arc.
 SCENES = [
-    {"title":"चमकता हुआ बीज", "line":"अरे, यह चमकता बीज कहाँ से आया?", "action":"discover", "place":"garden", "speaker":"chintu"},
-    {"title":"मिन्नी की तरकीब", "line":"इसे मिट्टी में लगाते हैं। हम रोज़ पानी देंगे।", "action":"plant", "place":"garden", "speaker":"mini"},
-    {"title":"गोलू की मदद", "line":"मेरी छोटी बोतल से पानी लो!", "action":"water", "place":"garden", "speaker":"golu"},
-    {"title":"टिंकू देखता है", "line":"पौधे को धूप भी चाहिए।", "action":"point", "place":"garden", "speaker":"tinku"},
-    {"title":"नन्हा पौधा", "line":"मिनी, इस गमले को धूप में ले चलें।", "action":"carry", "place":"garden", "speaker":"chintu"},
-    {"title":"खुशी की कली", "line":"वाह! हमारी कली खिल गई!", "action":"bloom", "place":"garden", "speaker":"mini"},
-    {"title":"बीज बाँटें", "line":"दोस्तों ने और बीज लगाए। बगीचा रंगों से भर गया।", "action":"celebrate", "place":"garden", "speaker":"narrator"},
-    {"title":"आज की सीख", "line":"प्यार और देखभाल से छोटी चीज़ भी बड़ा बदलाव ला सकती है।", "action":"wave", "place":"garden", "speaker":"narrator"},
+    {"title":"चमकता हुआ बीज", "line":"एक सुनहरी सुबह चिंटू अपने दोस्तों के साथ बगीचे में खेल रहा था। तभी घास के पास एक छोटी रोशनी चमकी। चिंटू धीरे से झुका और बोला, अरे, यह चमकता बीज कहाँ से आया? मिन्नी ने ध्यान से देखा और गोलू उछलकर पास आ गया।", "action":"discover", "place":"garden", "speaker":"chintu", "seconds":30},
+    {"title":"मिन्नी की योजना", "line":"मिन्नी ने कहा, शायद इसे मिट्टी और देखभाल चाहिए। हम इसे गमले में लगाएंगे, लेकिन पहले सही जगह चुनेंगे। चिंटू ने नरम मिट्टी ढूँढ़ी और गोलू ने सूखे पत्ते हटाए। टिंकू ने अपने छोटे सेंसर से जाँचकर बताया कि मिट्टी साफ और नम है।", "action":"plant", "place":"garden", "speaker":"mini", "seconds":30},
+    {"title":"पहली बूँदें", "line":"गोलू अपनी छोटी बोतल लेकर आया। उसने धीरे-धीरे पानी डाला ताकि बीज बह न जाए। चिंटू ने गमले को थामे रखा और मिन्नी ने देखा कि पानी मिट्टी में समा रहा है। गोलू मुस्कराकर बोला, अब इसे रोज़ थोड़ा पानी मिलेगा, बहुत ज़्यादा नहीं।", "action":"water", "place":"garden", "speaker":"golu", "seconds":30},
+    {"title":"धूप का रास्ता", "line":"टिंकू ने आसमान की ओर इशारा किया। पौधों को पानी के साथ धूप भी चाहिए। बगीचे के एक कोने में पेड़ की छाया थी, इसलिए दोस्तों ने धूप वाली जगह खोजी। मिन्नी ने सुबह की किरणें देखीं और चिंटू को गमला वहाँ रखने का सुझाव दिया।", "action":"point", "place":"garden", "speaker":"tinku", "seconds":30},
+    {"title":"मिलकर उठाएँ", "line":"गमला थोड़ा भारी था, इसलिए चिंटू ने अकेले उठाने की कोशिश नहीं की। उसने मिन्नी से मदद माँगी। दोनों ने नीचे से पकड़कर धीरे-धीरे कदम बढ़ाए। गोलू आगे रास्ता दिखाता रहा और टिंकू ने बताया कि वे सुरक्षित जगह पहुँच गए हैं।", "action":"carry", "place":"garden", "speaker":"chintu", "seconds":30},
+    {"title":"बगीचे की रखवाली", "line":"अगली सुबह दोस्तों ने गमले को देखा। मिट्टी सूखी लग रही थी, मगर बीज अभी भी ठीक था। गोलू ने छोटी मात्रा में पानी दिया, मिन्नी ने गमले के पास गिरी टहनी हटाई और चिंटू ने पौधे को तेज़ हवा से बचाने के लिए उसे दीवार के पास रखा।", "action":"water", "place":"garden", "speaker":"mini", "seconds":30},
+    {"title":"नन्ही कोंपल", "line":"कुछ दिनों बाद मिट्टी से हरी कोंपल बाहर आई। चिंटू खुशी से उछला, लेकिन मिन्नी ने कहा कि हमें इसे धीरे बढ़ने देना चाहिए। गोलू ने पास की मिट्टी नरम की और टिंकू ने सबको याद दिलाया कि पौधे को रोज़ देखना है, खींचना नहीं।", "action":"bloom", "place":"garden", "speaker":"narrator", "seconds":30},
+    {"title":"साझा देखभाल", "line":"अब हर दोस्त की एक छोटी ज़िम्मेदारी थी। चिंटू गमले को देखता, मिन्नी पानी की मात्रा जाँचती, गोलू सूखे पत्ते हटाता और टिंकू धूप का समय बताता। किसी दिन एक दोस्त व्यस्त होता तो बाकी उसकी मदद करते। पौधा अकेले किसी एक की मेहनत से नहीं, सबकी देखभाल से बढ़ा।", "action":"celebrate", "place":"garden", "speaker":"narrator", "seconds":30},
+    {"title":"फूलों की खुशबू", "line":"एक सुबह पौधे पर छोटी कली दिखाई दी। मिन्नी ने उसे छुए बिना सबको पास बुलाया। कली धीरे-धीरे खुली और बगीचे में रंग भर गया। गोलू ने दूर से ताली बजाई, चिंटू ने खुशी बाँटी और टिंकू की नीली आँखें खुशी से चमक उठीं।", "action":"bloom", "place":"garden", "speaker":"mini", "seconds":30},
+    {"title":"नई जगह की खोज", "line":"फूल देखकर दोस्तों को याद आया कि उनके पास और भी बीज हैं। उन्होंने बगीचे में खाली जगह ढूँढ़ी। चिंटू ने हर पौधे के लिए जगह छोड़ी, मिन्नी ने धूप की दिशा देखी और गोलू ने कहा कि तितलियों के लिए भी कुछ फूल रहने चाहिए।", "action":"carry", "place":"garden", "speaker":"chintu", "seconds":30},
+    {"title":"रंगों से भरा बगीचा", "line":"कुछ समय बाद कई छोटे पौधे उग आए। तितलियाँ फूलों के ऊपर मंडराईं और दोस्त पानी बाँटने लगे। टिंकू ने समझाया कि पौधे हवा और जीवों के लिए उपयोगी होते हैं। गोलू ने मज़ाक में अपनी बोतल छिपाई, फिर हँसते हुए उसे सबके साथ साझा कर दिया।", "action":"water", "place":"garden", "speaker":"golu", "seconds":30},
+    {"title":"छोटी कोशिश, बड़ा बदलाव", "line":"शाम को चारों दोस्त बगीचे के पास बैठे। चिंटू ने कहा कि एक छोटा बीज इतना सुंदर बगीचा बन सकता है, यह उसने नहीं सोचा था। मिन्नी बोली, धैर्य और मिलकर काम करना ज़रूरी है। उन्होंने सीखा कि प्यार और देखभाल से छोटी कोशिश भी बड़ा बदलाव ला सकती है।", "action":"wave", "place":"garden", "speaker":"narrator", "seconds":30},
+]
+
+SHORT_SCENES = [
+    {"title":"चमकता हुआ बीज!", "line":"अरे, घास में यह चमकता बीज किसका है? चलो, इसे मिलकर उगाते हैं!", "action":"discover", "place":"garden", "speaker":"chintu", "seconds":10},
+    {"title":"दोस्ती की योजना", "line":"मिट्टी, पानी और धूप—मिन्नी ने सही तरकीब खोज ली!", "action":"point", "place":"garden", "speaker":"mini", "seconds":10},
+    {"title":"बूँद से कली", "line":"गोलू ने पानी दिया और देखो, नन्ही कली खिल गई!", "action":"water", "place":"garden", "speaker":"golu", "seconds":10},
+    {"title":"सबका बगीचा", "line":"सबने बीज बाँटे। मिलकर की छोटी कोशिश बड़ा बगीचा बन गई!", "action":"celebrate", "place":"garden", "speaker":"narrator", "seconds":10},
 ]
 
 def font(size: int):
@@ -226,7 +238,7 @@ def draw_scaled_sprite(img, anchor_x, anchor_y, bounds, scale, painter):
     top=round(anchor_y+(bounds[1]-anchor_y)*scale)
     img.paste(sprite,(left,top),sprite)
 
-def draw_scene_frame(scene, scene_index, t, speaking, duration):
+def draw_scene_frame(scene, scene_index, t, speaking, duration, speech_seconds, local_t):
     action=scene["action"]
     beat=max(0.0,min(1.0,t/max(.1,duration)))
     camera=(scene_index*48)+math.sin(t*.55)*16
@@ -324,7 +336,12 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
     rounded(d,(32,24,1248,105),22,"#FFFEF3",outline="#52AED0",width=3)
     d.text((61,40),scene["title"],font=font(38),fill="#173B53",stroke_width=0)
     rounded(d,(70,620,1210,693),18,"#FFFFFF",outline="#FFE16A",width=3)
-    d.text((93,632),scene["line"],font=font(26),fill="#263746")
+    words=scene["line"].split()
+    chunks=[words[i:i+8] for i in range(0,len(words),8)]
+    chunk_index=min(len(chunks)-1,int(local_t/max(.1,speech_seconds)*len(chunks))) if chunks else 0
+    chunk=chunks[chunk_index] if chunks else []
+    d.text((93,622)," ".join(chunk[:4]),font=font(22),fill="#263746")
+    d.text((93,650)," ".join(chunk[4:]),font=font(22),fill="#263746")
     zoom=1.025+.07*math.sin(math.pi*beat)
     nw,nh=int(W*zoom),int(H*zoom)
     img=img.resize((nw,nh),Image.Resampling.BICUBIC)
@@ -356,21 +373,20 @@ def concatenate_scene_audio(wavs: list[Path], durations: list[float], output: Pa
             silence_samples=max(0,round((duration-speech_seconds)*params.framerate))
             combined.writeframes(b"\x00"*(silence_samples*params.nchannels*params.sampwidth))
 
-def build_video(topic: str, out_mp4: Path):
+def build_video(topic: str, out_mp4: Path, scene_definitions: list[dict] | None = None):
     ASSET_DIR.mkdir(parents=True,exist_ok=True)
-    scenes=[dict(item) for item in SCENES]
-    if topic and topic.strip() and topic.strip() not in ("चिंटू और दोस्तों की जादुई किताब", "चिंटू और दोस्तों की नई खोज"):
-        # The fixed original episode is safe and coherent; preserve the user's
-        # topic in the opening slate instead of pretending to have rewritten it.
-        scenes[0]["title"]=topic.strip()[:32]
+    scenes=[dict(item) for item in (scene_definitions if scene_definitions is not None else SCENES)]
     durations=[]
+    speech_durations=[]
     wavs=[]
     voice_modes=[]
     for i,scene in enumerate(scenes):
         wav=ASSET_DIR/f"line_{i:02d}.wav"
         voice_modes.append(synthesize_scene_voice(scene["line"],scene["speaker"],wav))
         wavs.append(wav)
-        durations.append(max(4.8,speech_duration(wav)+1.1))
+        speech_seconds=speech_duration(wav)
+        speech_durations.append(speech_seconds)
+        durations.append(max(float(scene.get("seconds",4.8)),speech_seconds+1.1))
     total=sum(durations)
     audio=ASSET_DIR/"narration.wav"
     concatenate_scene_audio(wavs,durations,audio)
@@ -382,7 +398,7 @@ def build_video(topic: str, out_mp4: Path):
     previous_frame=None
     transition_frames=round(.42*FPS)
     try:
-        for si,(scene,duration) in enumerate(zip(scenes,durations)):
+        for si,(scene,duration,speech_seconds) in enumerate(zip(scenes,durations,speech_durations)):
             frames=math.ceil(duration*FPS)
             spk=scene["speaker"]
             for fi in range(frames):
@@ -390,9 +406,9 @@ def build_video(topic: str, out_mp4: Path):
                 # Approximate word timing from the speech line; the character
                 # mouth moves only during the corresponding spoken scene.
                 speaking={"chintu":False,"mini":False,"tinku":False,"golu":False}
-                if spk in speaking and local_t < duration-0.75:
+                if spk in speaking and local_t < speech_seconds:
                     speaking[spk]=int(local_t*8)%3 != 0
-                frame=draw_scene_frame(scene,si,offset+local_t,speaking,duration)
+                frame=draw_scene_frame(scene,si,offset+local_t,speaking,duration,speech_seconds,local_t)
                 if previous_frame is not None and fi < transition_frames:
                     # Brief cross-dissolves join story beats as a cartoon
                     # sequence instead of a hard cut between poster-like cards.
@@ -420,13 +436,13 @@ def build_video(topic: str, out_mp4: Path):
         }, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    short_path=Path(os.getenv("KIDS_SHORT_OUTPUT",str(out_mp4.with_name(f"{out_mp4.stem}_short.mp4"))))
+    return out_mp4
+
+def render_vertical_short(source_mp4: Path, short_path: Path):
+    """Render a separate 40-second story summary in a portrait 9:16 frame."""
     short_path.parent.mkdir(parents=True,exist_ok=True)
-    # Keep the full 16:9 stage visible inside a 9:16 frame. A softly blurred,
-    # enlarged copy fills the portrait canvas, avoiding a center crop that
-    # would cut out the interacting characters or their shared prop.
     run([
-        "ffmpeg","-y","-i",str(out_mp4),"-filter_complex",
+        "ffmpeg","-y","-i",str(source_mp4),"-filter_complex",
         "[0:v]split=2[bg][fg];"
         "[bg]scale=320:568:force_original_aspect_ratio=increase,crop=320:568,boxblur=12:4,scale=720:1280[bgblur];"
         "[fg]scale=720:-2[foreground];"
@@ -435,14 +451,18 @@ def build_video(topic: str, out_mp4: Path):
         "-crf","22","-pix_fmt","yuv420p","-c:a","aac","-b:a","128k",
         "-movflags","+faststart",str(short_path),
     ])
-    source_voice_metadata=out_mp4.with_suffix(".voices.json")
+    source_voice_metadata=source_mp4.with_suffix(".voices.json")
     if source_voice_metadata.exists():
         short_path.with_suffix(".voices.json").write_text(
             source_voice_metadata.read_text(encoding="utf-8"),encoding="utf-8"
         )
 
 if __name__=="__main__":
-    topic=os.getenv("KIDS_TOPIC","चिंटू और दोस्तों की बगीचे वाली खोज")
+    topic=os.getenv("KIDS_TOPIC","चिंटू और दोस्तों का चमकता बीज")
     output=Path(os.getenv("KIDS_OUTPUT","/tmp/kids-video.mp4"))
-    build_video(topic,output)
-    print(output)
+    short_output=Path(os.getenv("KIDS_SHORT_OUTPUT","/tmp/kids-short.mp4"))
+    short_landscape=ASSET_DIR/"short-landscape.mp4"
+    build_video(topic,output,SCENES)
+    build_video(topic,short_landscape,SHORT_SCENES)
+    render_vertical_short(short_landscape,short_output)
+    print({"long":str(output),"short":str(short_output)})
