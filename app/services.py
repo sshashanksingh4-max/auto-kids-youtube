@@ -13,6 +13,7 @@ higgsfield = HiggsfieldProvider(
     video_model=settings.higgsfield_video_model,
     voice_id=settings.higgsfield_voice_id,
     voice_type=settings.higgsfield_voice_type,
+    allow_metered_generation=settings.allow_metered_video_generation,
 )
 
 pollinations = PollinationsProvider(settings.pollinations_api_key)

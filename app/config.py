@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     # purchase credits automatically.
     higgsfield_api_key_id: str | None = None
     higgsfield_api_key_secret: str | None = None
+    # Seedance API jobs can consume paid credits. Keep the gate closed unless
+    # the user has explicitly approved metered generation for this deployment.
+    allow_metered_video_generation: bool = False
     higgsfield_video_model: str = "seedance_2.0"
     higgsfield_voice_id: str | None = None
     higgsfield_voice_type: str = "preset"

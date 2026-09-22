@@ -52,10 +52,10 @@ def make_story(plan: dict) -> dict:
     return {
         "title": title,
         "characters": [
-            {**CHARACTERS["chintu"], "visual": f"bright polished 3D cartoon; {hero['visual']}"},
-            {**CHARACTERS["mini"], "visual": f"bright polished 3D cartoon; {friend['visual']}"},
-            {**CHARACTERS["golu"], "visual": f"bright polished 3D cartoon; {squirrel['visual']}"},
-            {**CHARACTERS["tinku"], "visual": f"bright polished 3D cartoon; {robot['visual']}"},
+            {**CHARACTERS["chintu"], "visual": f"colorful 2D cartoon rig; {hero['visual']}"},
+            {**CHARACTERS["mini"], "visual": f"colorful 2D cartoon rig; {friend['visual']}"},
+            {**CHARACTERS["golu"], "visual": f"colorful 2D cartoon rig; {squirrel['visual']}"},
+            {**CHARACTERS["tinku"], "visual": f"colorful 2D cartoon rig; {robot['visual']}"},
         ],
         "lesson": "मिलकर सीखना, दूसरों की मदद करना और खुशी बाँटना हमेशा अच्छा होता है।",
         "script_hi": story,
@@ -66,18 +66,18 @@ def make_story(plan: dict) -> dict:
 def make_scene_plan(story: dict) -> list[dict]:
     title = story["title"]
     prompts = [
-        f"3D cartoon opening for Hindi kids story: {title}, Chintu and Mini with Golu the squirrel and Tinku the friendly robot, colorful village, cheerful morning, cinematic",
-        "3D cartoon Chintu and friends discover a mysterious clue, expressive faces, playful camera movement",
-        "3D cartoon friends travel through a colorful garden, Golu adds gentle humor, safe playful exploration",
-        "3D cartoon friends cross a tiny stream together, Tinku helps safely, teamwork and gentle humor",
-        "3D cartoon friends discover a glowing trail, magical but family-friendly atmosphere",
-        "3D cartoon Mini solves a simple puzzle while Chintu, Golu and Tinku help, warm educational moment",
-        "3D cartoon friends help a small friendly animal, kindness and empathy",
-        "3D cartoon friends reach a magical mango tree, bright colors and joyful expressions",
-        "3D cartoon magical reveal, sparkles, cheerful reactions, cinematic camera",
-        "3D cartoon children celebrate by sharing the discovery with friends",
-        "3D cartoon sunset walk home, Chintu, Mini, Golu and Tinku together, friendship and family-friendly warmth",
-        "3D cartoon ending with a clear positive lesson, happy characters, cinematic closing feeling",
+        f"Colorful 2D animated cartoon opening for Hindi kids story: {title}, Chintu and Mini with Golu the squirrel and Tinku the friendly robot, colorful village, cheerful morning, cinematic camera motion",
+        "2D cartoon Chintu and friends discover a mysterious clue; walking, expressive faces, glances and playful camera movement",
+        "2D animated friends travel through a colorful garden; visible walk cycles, Golu adds gentle humor, safe playful exploration",
+        "2D cartoon friends cross a tiny stream together; Tinku points out a safe path, teamwork and gentle humor",
+        "2D animated friends discover a glowing trail; curious reactions and magical but family-friendly atmosphere",
+        "2D cartoon Mini solves a simple puzzle; she points to the answer while Chintu, Golu and Tinku react",
+        "2D animated friends help a small friendly animal; visible hand interaction, kindness and empathy",
+        "2D cartoon friends reach a magical mango tree; flowers sway, bright colors and joyful expressions",
+        "2D animated magical reveal; sparkles move, characters react, cinematic camera",
+        "2D cartoon children celebrate by sharing the discovery with friends; claps, smiles and gestures",
+        "2D animated sunset walk home; Chintu, Mini, Golu and Tinku walk together, friendship and family-friendly warmth",
+        "2D cartoon ending with a clear positive lesson; happy characters wave, cinematic closing feeling",
     ]
     return [
         {"scene": i + 1, "seconds": 30, "prompt": prompt}
@@ -88,10 +88,10 @@ def make_scene_plan(story: dict) -> list[dict]:
 def make_short_scene_plan(story: dict) -> list[dict]:
     title = story["title"]
     return [
-        {"scene": 1, "seconds": 10, "prompt": f"Vertical 3D cartoon hook for Hindi kids Short: {title}, Chintu and friends see a surprising clue, exciting first moment, bright colors"},
-        {"scene": 2, "seconds": 10, "prompt": "Vertical 3D cartoon mystery reveal, Mini notices the key detail, expressive child reactions, fast playful camera"},
-        {"scene": 3, "seconds": 10, "prompt": "Vertical 3D cartoon clever solution, Golu reacts humorously, Tinku helps, joyful expressions, colorful magical moment"},
-        {"scene": 4, "seconds": 10, "prompt": "Vertical 3D cartoon ending with Chintu and friends sharing a simple positive lesson, cheerful and memorable"},
+        {"scene": 1, "seconds": 10, "prompt": f"Vertical 2D animated cartoon hook for Hindi kids Short: {title}, Chintu and friends see a surprising clue, visible reaction and camera movement, bright colors"},
+        {"scene": 2, "seconds": 10, "prompt": "Vertical 2D cartoon mystery reveal, Mini points out the key detail, expressive child reactions, playful camera movement"},
+        {"scene": 3, "seconds": 10, "prompt": "Vertical 2D animated clever solution, Golu reacts humorously, Tinku gestures to help, joyful expressions, colorful magical moment"},
+        {"scene": 4, "seconds": 10, "prompt": "Vertical 2D cartoon ending with Chintu and friends sharing a simple positive lesson, cheerful and memorable"},
     ]
 
 
