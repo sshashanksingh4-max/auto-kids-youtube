@@ -1,27 +1,28 @@
 # Auto Kids YouTube
 
-Automated production pipeline for original Hindi children's videos.
+Production backend for an automated Hindi kids-video channel.
 
-## Pipeline
+## Current pipeline
+1. Content planning
+2. Original Hindi story generation
+3. Character and scene planning
+4. Deterministic kids-safety precheck
+5. Higgsfield scene-video job submission
+6. YouTube metadata generation
+7. Provider readiness checks
+8. YouTube OAuth publishing adapter
 
-Trend research -> content planning -> story -> characters/world -> scene plan -> video -> Hindi voice -> music/SFX -> thumbnail -> safety/quality review -> Shorts/long video packaging -> YouTube publishing -> analytics optimization.
+## API
+- `GET /` — service status
+- `GET /health` — provider readiness
+- `GET /pipeline/preview` — inspect a generated story/pipeline
+- `POST /pipeline/run` — generate a pipeline manifest
+- `POST /pipeline/generate-scenes` — submit scene video jobs when Higgsfield credentials are configured
+- `GET /docs` — FastAPI docs
 
-## Safety and originality
+## Required production credentials
+- Higgsfield API credentials for video generation
+- A selected Higgsfield voice ID for automated Hindi narration
+- YouTube OAuth credentials for publishing
 
-The system is designed to create original stories and visuals rather than copy or re-upload other creators' videos. Trend research informs topics and formats; it does not authorize copying copyrighted characters, scripts, footage, or audio.
-
-## Local development
-
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-Then open `/health` and POST `/pipeline/run`.
-
-## Provider adapters
-
-External providers will be connected through isolated adapters. Secrets belong in environment variables, never in Git.
+The system never hard-codes or exposes provider secrets.
