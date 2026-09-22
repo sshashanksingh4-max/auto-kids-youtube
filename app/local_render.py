@@ -91,7 +91,8 @@ def background(t: float, scene_index: int, camera: float) -> Image.Image:
 
 def draw_human(d: ImageDraw.ImageDraw, x: float, floor: float, kind: str,
                t: float, emotion: str, speaking: bool, facing: int = 1,
-               walk: float = 0.0, gesture: float = 0.0, scale: float = 1.0):
+               walk: float = 0.0, gesture: float = 0.0, scale: float = 1.0,
+               interaction: tuple[float,float] | None = None):
     """A small articulated cartoon rig with limb swing and changing face."""
     s=scale; bob=math.sin(t*8)*3*s if walk else abs(math.sin(t*5))*2*s
     x=float(x); y=floor-bob
@@ -126,6 +127,15 @@ def draw_human(d: ImageDraw.ImageDraw, x: float, floor: float, kind: str,
         else:
             elbow=(x+side*43*s,y-78*s+swing*.4)
             hand=(x+side*50*s,y-55*s+swing)
+        if side==facing and interaction is not None:
+            # Reach toward the shared seed, pot or flower, then retract with
+            # the gesture pulse; elbows follow the wrist instead of pointing
+            # in a fixed direction unrelated to the prop.
+            default_hand=hand
+            hand=(default_hand[0]+(interaction[0]-default_hand[0])*active,
+                  default_hand[1]+(interaction[1]-default_hand[1])*active)
+            elbow=(shoulder[0]+(hand[0]-shoulder[0])*.58,
+                   shoulder[1]+(hand[1]-shoulder[1])*.62-10*s)
         d.line((*shoulder,*elbow),fill=shirt,width=max(8,int(15*s)))
         d.line((*elbow,*hand),fill=skin,width=max(7,int(12*s)))
         d.ellipse((hand[0]-7*s,hand[1]-7*s,hand[0]+7*s,hand[1]+7*s),fill=skin)
@@ -259,16 +269,27 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
             d.line((pot_x+60,520+pot_bob,pot_x+60,492+pot_bob),fill="#318748",width=6)
             d.ellipse((pot_x+43,487+pot_bob,pot_x+59,499+pot_bob),fill="#78C86A")
             d.ellipse((pot_x+61,487+pot_bob,pot_x+77,499+pot_bob),fill="#78C86A")
-    gesture=max(0.0,math.sin(math.pi*beat))
+    gesture=max(0.0,math.sin(math.pi*beat))*(.72+.28*math.sin(t*3.1))
     chintu_emotion="surprised" if action in ("discover","bloom") else ("thinking" if action=="plant" else "happy")
     mini_emotion="thinking" if action in ("plant","discover") else ("surprised" if action=="bloom" else "happy")
     scale=1.27 if action not in ("celebrate","wave") else 1.13
+    discover_seed_y=493+abs(math.sin(t*4))*9
+    chintu_target=None
+    mini_target=None
+    if action=="discover": chintu_target=(cx+55,discover_seed_y)
+    if action=="plant": mini_target=(pot_x+60,510)
+    if action=="water": mini_target=(pot_x+105,540)
+    if action=="carry":
+        chintu_target=(pot_x+12,548); mini_target=(pot_x+108,548)
+    if action=="bloom": mini_target=(pot_x+60,450)
     draw_human(d,cx,595,"chintu",t,chintu_emotion,speaking.get("chintu",False),1,
                walk=1.0 if action=="carry" else 0,
-               gesture=gesture if action in ("discover","plant","carry","celebrate") else 0,scale=scale)
+               gesture=gesture if action in ("discover","plant","carry","celebrate") else 0,scale=scale,
+               interaction=chintu_target)
     draw_human(d,mini_x,595,"mini",t,mini_emotion,speaking.get("mini",False),-1,
                walk=1.0 if action=="carry" else 0,
-               gesture=gesture if action in ("plant","water","bloom","celebrate") else 0,scale=scale)
+               gesture=gesture if action in ("plant","water","bloom","celebrate") else 0,scale=scale,
+               interaction=mini_target)
     if present[2]:
         draw_scaled_sprite(img,squirrel_x,596,(squirrel_x-40,471,squirrel_x+85,604),1.28,
             lambda sd: draw_squirrel(sd,squirrel_x,596,t,action,gesture,speaking.get("golu",False)))
@@ -280,7 +301,7 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
     # The seed drops into soil, water arcs from Golu's bottle, and the sprout
     # responds on the shared prop instead of adding unrelated ambient motion.
     if action=="discover":
-        seed_y=493+abs(math.sin(t*4))*9
+        seed_y=discover_seed_y
         sx=cx+49
         d.ellipse((sx-12,seed_y-12,sx+12,seed_y+12),fill="#FFE269",outline="#FFF8B0",width=3)
         for a in range(0,360,90):
@@ -292,7 +313,7 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
     if action=="water":
         for i in range(6):
             drop_t=(t*1.7+i*.16)%1
-            px=690+drop_t*105; py=435+drop_t*105-math.sin(drop_t*math.pi)*20
+            px=918-drop_t*300; py=435+drop_t*105-math.sin(drop_t*math.pi)*20
             d.ellipse((px-4,py-8,px+4,py+8),fill="#49BDE8",outline="#D8F6FF")
     if action=="celebrate":
         for i in range(18):
