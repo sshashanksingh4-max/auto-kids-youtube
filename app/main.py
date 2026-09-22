@@ -1,10 +1,11 @@
 from fastapi import FastAPI
+from app.executor import generate_scene_jobs
 from app.orchestrator import run_pipeline
 from app.services import exa, higgsfield, youtube
 
 app = FastAPI(
     title="Auto Kids YouTube",
-    version="0.3.0",
+    version="0.4.0",
     description="Automation backend for original Hindi kids video production."
 )
 
@@ -18,6 +19,7 @@ def root():
             "health": "/health",
             "preview": "/pipeline/preview",
             "pipeline": "/pipeline/run",
+            "generate_scenes": "/pipeline/generate-scenes",
             "docs": "/docs",
         },
     }
@@ -30,6 +32,7 @@ def health():
         "providers": {
             "research": exa.api_key is not None,
             "video": higgsfield.enabled,
+            "voice_configured": higgsfield.voice_enabled,
             "youtube": youtube.enabled,
         },
     }
@@ -41,3 +44,7 @@ def pipeline_preview(topic: str | None = None):
 @app.post("/pipeline/run")
 def pipeline_run(topic: str | None = None):
     return run_pipeline(topic)
+
+@app.post("/pipeline/generate-scenes")
+async def pipeline_generate_scenes(topic: str | None = None):
+    return await generate_scene_jobs(topic)
