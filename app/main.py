@@ -4,7 +4,7 @@ from app.services import exa, higgsfield, youtube
 
 app = FastAPI(
     title="Auto Kids YouTube",
-    version="0.2.0",
+    version="0.3.0",
     description="Automation backend for original Hindi kids video production."
 )
 
@@ -16,6 +16,7 @@ def root():
         "message": "Auto Kids YouTube API is running.",
         "endpoints": {
             "health": "/health",
+            "preview": "/pipeline/preview",
             "pipeline": "/pipeline/run",
             "docs": "/docs",
         },
@@ -32,6 +33,10 @@ def health():
             "youtube": youtube.enabled,
         },
     }
+
+@app.get("/pipeline/preview")
+def pipeline_preview(topic: str | None = None):
+    return run_pipeline(topic)
 
 @app.post("/pipeline/run")
 def pipeline_run(topic: str | None = None):
