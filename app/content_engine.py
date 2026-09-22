@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 
-
 SAFE_THEMES = {
     "adventure", "friendship", "kindness", "sharing", "honesty",
     "curiosity", "teamwork", "nature", "animals", "learning",
@@ -55,27 +54,51 @@ def make_story(plan: dict) -> dict:
 
 def make_scene_plan(story: dict) -> list[dict]:
     title = story["title"]
+    prompts = [
+        f"3D cartoon opening for Hindi kids story: {title}, colorful village, cheerful morning, cinematic",
+        "3D cartoon children discover a mysterious clue, expressive faces, playful camera movement",
+        "3D cartoon friends travel through a colorful garden, safe playful exploration",
+        "3D cartoon friends cross a tiny stream together, teamwork and gentle humor",
+        "3D cartoon friends discover a glowing trail, magical but family-friendly atmosphere",
+        "3D cartoon friends solve a simple puzzle together, warm educational moment",
+        "3D cartoon friends help a small friendly animal, kindness and empathy",
+        "3D cartoon friends reach a magical tree, bright colors and joyful expressions",
+        "3D cartoon magical reveal, sparkles, cheerful reactions, cinematic camera",
+        "3D cartoon children celebrate by sharing the discovery with friends",
+        "3D cartoon sunset walk home, friendship and family-friendly warmth",
+        "3D cartoon ending card feeling, happy children, clear positive lesson, cinematic",
+    ]
     return [
-        {"scene": 1, "seconds": 30, "prompt": f"3D cartoon opening for Hindi kids story: {title}, colorful village, cheerful morning, cinematic"},
-        {"scene": 2, "seconds": 45, "prompt": "3D cartoon children discover a mysterious clue, expressive faces, playful camera movement"},
-        {"scene": 3, "seconds": 60, "prompt": "3D cartoon adventure through a colorful garden and forest, safe playful exploration"},
-        {"scene": 4, "seconds": 60, "prompt": "3D cartoon friends solve a simple puzzle together, warm educational moment"},
-        {"scene": 5, "seconds": 60, "prompt": "3D cartoon magical reveal, bright friendly environment, joyful expressions"},
-        {"scene": 6, "seconds": 45, "prompt": "3D cartoon friends share their discovery with other children, celebration"},
-        {"scene": 7, "seconds": 60, "prompt": "3D cartoon ending with family-friendly lesson, sunset, warm happy atmosphere"},
+        {"scene": i + 1, "seconds": 30, "prompt": prompt}
+        for i, prompt in enumerate(prompts)
     ]
 
 
-def make_metadata(story: dict) -> dict:
+def make_short_scene_plan(story: dict) -> list[dict]:
+    title = story["title"]
+    return [
+        {"scene": 1, "seconds": 10, "prompt": f"Vertical 3D cartoon hook for Hindi kids Short: {title}, exciting first moment, bright colors"},
+        {"scene": 2, "seconds": 10, "prompt": "Vertical 3D cartoon mystery reveal, expressive child reactions, fast playful camera"},
+        {"scene": 3, "seconds": 10, "prompt": "Vertical 3D cartoon clever solution, joyful expressions, colorful magical moment"},
+        {"scene": 4, "seconds": 10, "prompt": "Vertical 3D cartoon ending with a simple positive lesson, cheerful and memorable",
+        },
+    ]
+
+
+def make_metadata(story: dict, short: bool = False) -> dict:
     title = story["title"]
     clean = re.sub(r"[^\w\s-]", "", title, flags=re.UNICODE).strip()
+    suffix = " | Hindi Kids Short" if short else " | Hindi Kids Story"
     return {
-        "youtube_title": f"{clean} | Hindi Kids Story | मज़ेदार कहानी",
+        "youtube_title": f"{clean}{suffix}",
         "description": (
             f"{title} की एक original Hindi kids story। "
-            "यह कहानी बच्चों के लिए friendship, curiosity और learning को मज़ेदार तरीके से प्रस्तुत करती है।"
+            "बच्चों के लिए friendship, curiosity और learning को मज़ेदार तरीके से प्रस्तुत किया गया है।"
         ),
-        "tags": ["Hindi kids story", "Hindi cartoon", "kids story", "बच्चों की कहानी", "Hindi cartoon story"],
+        "tags": [
+            "Hindi kids story", "Hindi cartoon", "kids story",
+            "बच्चों की कहानी", "Hindi cartoon story", "kids short",
+        ],
         "category": "Kids & Family",
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
