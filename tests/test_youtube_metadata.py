@@ -13,7 +13,10 @@ class YouTubeMetadataTests(unittest.TestCase):
         service = build.return_value
         service.videos.return_value.insert.return_value.execute.return_value = {"id": "video-id"}
 
-        result = publisher.upload("episode.mp4", "कहानी", "विवरण", ["बच्चों की कहानी"])
+        result = publisher.upload(
+            "episode.mp4", "कहानी", "विवरण", ["बच्चों की कहानी"],
+            thumbnail_path="episode.jpg",
+        )
 
         self.assertEqual(result["id"], "video-id")
         request = service.videos.return_value.insert.call_args.kwargs
@@ -21,6 +24,8 @@ class YouTubeMetadataTests(unittest.TestCase):
         self.assertEqual(request["body"]["snippet"]["defaultAudioLanguage"], "hi")
         self.assertEqual(request["body"]["status"]["privacyStatus"], "private")
         self.assertIs(request["body"]["status"]["selfDeclaredMadeForKids"], True)
+        service.thumbnails.return_value.set.assert_called_once()
+        self.assertTrue(result["thumbnailSet"])
 
     def test_rejects_unknown_privacy_status(self):
         publisher = YouTubePublisher(None, None, None)

@@ -18,6 +18,7 @@ from app.voice import synthesize_scene_voice
 
 W, H, FPS = 1280, 720, 24
 ASSET_DIR = Path(os.getenv("KIDS_ASSET_DIR", "/tmp/kids-assets"))
+STORY_TITLE = "चिंटू और दोस्तों का चमकता बीज"
 FONT_PATHS = (
     "C:/Windows/Fonts/Nirmala.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf",
@@ -395,7 +396,7 @@ def concatenate_scene_audio(wavs: list[Path], durations: list[float], output: Pa
             silence_samples=max(0,round((duration-speech_seconds)*params.framerate))
             combined.writeframes(b"\x00"*(silence_samples*params.nchannels*params.sampwidth))
 
-def build_video(topic: str, out_mp4: Path, scene_definitions: list[dict] | None = None):
+def build_video(out_mp4: Path, scene_definitions: list[dict] | None = None):
     ASSET_DIR.mkdir(parents=True,exist_ok=True)
     scenes=[dict(item) for item in (scene_definitions if scene_definitions is not None else SCENES)]
     durations=[]
@@ -452,7 +453,7 @@ def build_video(topic: str, out_mp4: Path, scene_definitions: list[dict] | None 
     # gates can distinguish preview audio from the requested natural-voice path.
     out_mp4.with_suffix(".voices.json").write_text(
         json.dumps({
-            "provider": os.getenv("KIDS_TTS_PROVIDER", "preview").strip().lower(),
+            "provider": os.getenv("KIDS_TTS_PROVIDER", "svara").strip().lower(),
             "scene_voice_modes": voice_modes,
             "note": "eSpeak preview audio is robotic and must not be published.",
         }, ensure_ascii=False, indent=2),
@@ -480,15 +481,14 @@ def render_vertical_short(source_mp4: Path, short_path: Path):
         )
 
 if __name__=="__main__":
-    topic=os.getenv("KIDS_TOPIC","चिंटू और दोस्तों का चमकता बीज")
     output=Path(os.getenv("KIDS_OUTPUT","/tmp/kids-video.mp4"))
     short_output=Path(os.getenv("KIDS_SHORT_OUTPUT","/tmp/kids-short.mp4"))
     thumbnail=Path(os.getenv("KIDS_THUMBNAIL_OUTPUT",str(output.with_suffix(".jpg"))))
     short_thumbnail=Path(os.getenv("KIDS_SHORT_THUMBNAIL_OUTPUT",str(short_output.with_suffix(".jpg"))))
     short_landscape=ASSET_DIR/"short-landscape.mp4"
-    build_video(topic,output,SCENES)
+    build_video(output,SCENES)
     render_thumbnail(SCENES[0],thumbnail)
-    build_video(topic,short_landscape,SHORT_SCENES)
+    build_video(short_landscape,SHORT_SCENES)
     render_vertical_short(short_landscape,short_output)
     extract_video_thumbnail(short_output,short_thumbnail)
     print({"long":str(output),"short":str(short_output),"thumbnail":str(thumbnail),"short_thumbnail":str(short_thumbnail)})

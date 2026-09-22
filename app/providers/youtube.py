@@ -22,6 +22,7 @@ class YouTubePublisher:
         description: str,
         tags: list[str],
         privacy_status: str = "private",
+        thumbnail_path: str | None = None,
     ) -> dict:
         if privacy_status not in {"private", "unlisted", "public"}:
             raise ValueError("privacy_status must be private, unlisted, or public")
@@ -55,4 +56,16 @@ class YouTubePublisher:
             },
             media_body=MediaFileUpload(str(Path(video_path)), resumable=True),
         )
-        return request.execute()
+        uploaded = request.execute()
+        if thumbnail_path and uploaded.get("id"):
+            thumbnail_request = youtube.thumbnails().set(
+                videoId=uploaded["id"],
+                media_body=MediaFileUpload(
+                    str(Path(thumbnail_path)),
+                    mimetype="image/jpeg",
+                    resumable=False,
+                ),
+            )
+            thumbnail_request.execute()
+            uploaded["thumbnailSet"] = True
+        return uploaded

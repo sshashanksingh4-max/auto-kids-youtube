@@ -1,8 +1,8 @@
 """Hindi voice routing for the animation renderer.
 
-The built-in eSpeak voice is a preview-only fallback. Svara can be selected
-explicitly for a consistent, youthful cast voice; failures are raised instead
-of silently replacing a requested natural voice with robotic speech.
+Svara is the default for a consistent, youthful cast voice. The built-in
+eSpeak voice is an explicit preview option; Svara failures are raised instead
+of silently replacing natural speech with robotic audio.
 """
 from __future__ import annotations
 
@@ -99,7 +99,9 @@ def _pitch_shift_youthful_voice(source: Path, destination: Path) -> None:
 
 def synthesize_scene_voice(text: str, voice: str, out_wav: Path) -> str:
     """Write a scene line and return the actual voice mode used."""
-    provider = os.getenv("KIDS_TTS_PROVIDER", "preview").strip().lower()
+    # Natural Hindi TTS is the product path. eSpeak remains an explicit
+    # preview option so a local render cannot silently sound robotic.
+    provider = os.getenv("KIDS_TTS_PROVIDER", "svara").strip().lower()
     if provider not in {"preview", "svara"}:
         raise ValueError("KIDS_TTS_PROVIDER must be 'preview' or 'svara'")
     if provider == "preview":
