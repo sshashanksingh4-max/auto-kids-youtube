@@ -12,7 +12,7 @@ Free-first tooling for planning and producing original Hindi children's cartoons
 - A GitHub Actions trial workflow that renders an MP4 artifact. This is a render trial, not an auto-publishing pipeline.
 - A CI video check that requires audio/video streams and movement across one-second samples, so frozen renders fail the trial.
 
-The procedural renderer is a 2D cartoon prototype. It is not 3D or AI-generated video, and its current eSpeak voice is not production-quality Hindi. The motion-review GIF generated during this task is a separate preview artifact, not an MP4 deliverable.
+The procedural renderer is a 2D cartoon prototype. It is not 3D or AI-generated video. Its default eSpeak track is a robotic preview and is not suitable for publishing. An opt-in Svara Hindi path is available for the child cast; it uses one shared voice identity and a small pitch lift for a youthful sound. Tinku remains robotic by design. Svara is a public free ZeroGPU demo with shared quotas and no availability guarantee, so a failed request stops the render instead of silently substituting eSpeak. Listen to and approve voice quality before publishing.
 
 ## Local render
 
@@ -25,6 +25,8 @@ python -m app.local_render
 ```
 
 The story beats currently live in `SCENES` in `app/local_render.py`. The current renderer is a visual-quality prototype; it should not publish automatically.
+
+To request Svara voices for Chintu, Mini and Golu, set `KIDS_TTS_PROVIDER=svara`. This makes one request per speaking scene to the public Svara Space. No retries or paid fallback are used. Leave `KIDS_TTS_PROVIDER` unset for the robotic eSpeak preview. Each render writes a `.voices.json` sidecar that records the provider and per-scene voice modes.
 
 ## API
 

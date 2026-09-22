@@ -7,12 +7,14 @@ gaze, props and a moving camera. It is a 2D rigged cartoon, not 3D or AI video.
 from __future__ import annotations
 
 import math
+import json
 import os
 import subprocess
 import wave
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+from app.voice import synthesize_scene_voice
 
 W, H, FPS = 1280, 720, 24
 ASSET_DIR = Path(os.getenv("KIDS_ASSET_DIR", "/tmp/kids-assets"))
@@ -354,11 +356,6 @@ def concatenate_scene_audio(wavs: list[Path], durations: list[float], output: Pa
             silence_samples=max(0,round((duration-speech_seconds)*params.framerate))
             combined.writeframes(b"\x00"*(silence_samples*params.nchannels*params.sampwidth))
 
-def synthesize_voice(text: str, out_wav: Path):
-    # Free offline Hindi fallback. Hosted providers remain opt-in; no paid
-    # credits are used. Keep speed moderate and lines short for intelligibility.
-    run(["espeak","-v","hi","-s","132","-p","48","-a","165","-w",str(out_wav),text])
-
 def build_video(topic: str, out_mp4: Path):
     ASSET_DIR.mkdir(parents=True,exist_ok=True)
     scenes=[dict(item) for item in SCENES]
@@ -368,9 +365,10 @@ def build_video(topic: str, out_mp4: Path):
         scenes[0]["title"]=topic.strip()[:32]
     durations=[]
     wavs=[]
+    voice_modes=[]
     for i,scene in enumerate(scenes):
         wav=ASSET_DIR/f"line_{i:02d}.wav"
-        synthesize_voice(scene["line"],wav)
+        voice_modes.append(synthesize_scene_voice(scene["line"],scene["speaker"],wav))
         wavs.append(wav)
         durations.append(max(4.8,speech_duration(wav)+1.1))
     total=sum(durations)
@@ -412,6 +410,16 @@ def build_video(topic: str, out_mp4: Path):
     muxed=ASSET_DIR/"final.mp4"
     run(["ffmpeg","-y","-i",str(out_mp4),"-i",str(audio),"-map","0:v:0","-map","1:a:0","-af","apad","-t",f"{total:.2f}","-c:v","copy","-c:a","aac","-b:a","128k","-movflags","+faststart",str(muxed)])
     muxed.replace(out_mp4)
+    # Keep honest provenance alongside the render so QA and later publishing
+    # gates can distinguish preview audio from the requested natural-voice path.
+    out_mp4.with_suffix(".voices.json").write_text(
+        json.dumps({
+            "provider": os.getenv("KIDS_TTS_PROVIDER", "preview").strip().lower(),
+            "scene_voice_modes": voice_modes,
+            "note": "eSpeak preview audio is robotic and must not be published.",
+        }, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
 if __name__=="__main__":
     topic=os.getenv("KIDS_TOPIC","चिंटू और दोस्तों की बगीचे वाली खोज")
