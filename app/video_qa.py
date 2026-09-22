@@ -70,6 +70,8 @@ def inspect_video(path: str) -> dict:
         )
     result = {
         "duration_seconds": round(duration, 1),
+        "width": video.get("width"),
+        "height": video.get("height"),
         "video_codec": video.get("codec_name"),
         "audio_codec": audio.get("codec_name"),
         "sampled_frames": len(frames),
@@ -99,4 +101,10 @@ def inspect_video(path: str) -> dict:
 
 if __name__ == "__main__":
     result = inspect_video(sys.argv[1])
+    if len(sys.argv) > 2 and sys.argv[2] == "--require-vertical":
+        if result["height"] / result["width"] < 1.7:
+            raise ValueError("Short output must use a vertical 9:16-style frame")
+        if result["duration_seconds"] > 60:
+            raise ValueError("Short output exceeds the 60-second trial limit")
+        result["vertical_short_check"] = "passed"
     print(json.dumps(result, ensure_ascii=False, indent=2))

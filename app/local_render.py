@@ -420,6 +420,26 @@ def build_video(topic: str, out_mp4: Path):
         }, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+    short_path=Path(os.getenv("KIDS_SHORT_OUTPUT",str(out_mp4.with_name(f"{out_mp4.stem}_short.mp4"))))
+    short_path.parent.mkdir(parents=True,exist_ok=True)
+    # Keep the full 16:9 stage visible inside a 9:16 frame. A softly blurred,
+    # enlarged copy fills the portrait canvas, avoiding a center crop that
+    # would cut out the interacting characters or their shared prop.
+    run([
+        "ffmpeg","-y","-i",str(out_mp4),"-filter_complex",
+        "[0:v]split=2[bg][fg];"
+        "[bg]scale=320:568:force_original_aspect_ratio=increase,crop=320:568,boxblur=12:4,scale=720:1280[bgblur];"
+        "[fg]scale=720:-2[foreground];"
+        "[bgblur][foreground]overlay=(W-w)/2:(H-h)/2,setsar=1[v]",
+        "-map","[v]","-map","0:a:0","-c:v","libx264","-preset","veryfast",
+        "-crf","22","-pix_fmt","yuv420p","-c:a","aac","-b:a","128k",
+        "-movflags","+faststart",str(short_path),
+    ])
+    source_voice_metadata=out_mp4.with_suffix(".voices.json")
+    if source_voice_metadata.exists():
+        short_path.with_suffix(".voices.json").write_text(
+            source_voice_metadata.read_text(encoding="utf-8"),encoding="utf-8"
+        )
 
 if __name__=="__main__":
     topic=os.getenv("KIDS_TOPIC","चिंटू और दोस्तों की बगीचे वाली खोज")
