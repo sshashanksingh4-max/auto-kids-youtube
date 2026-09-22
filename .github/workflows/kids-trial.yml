@@ -24,6 +24,8 @@ jobs:
       KIDS_TOPIC: ${{ github.event.inputs.topic || 'चिंटू और दोस्तों का चमकता बीज' }}
       KIDS_OUTPUT: /tmp/kids-video.mp4
       KIDS_SHORT_OUTPUT: /tmp/kids-short.mp4
+      KIDS_THUMBNAIL_OUTPUT: /tmp/kids-thumbnail.jpg
+      KIDS_SHORT_THUMBNAIL_OUTPUT: /tmp/kids-short-thumbnail.jpg
 
     steps:
       - name: Checkout
@@ -43,10 +45,13 @@ jobs:
         run: |
           test -s /tmp/kids-video.mp4
           test -s /tmp/kids-short.mp4
+          test -s /tmp/kids-thumbnail.jpg
+          test -s /tmp/kids-short-thumbnail.jpg
           ffprobe -v error -show_entries format=duration,size -of default=nw=1 /tmp/kids-video.mp4
           ffprobe -v error -show_entries stream=width,height -of csv=s=x:p=0 /tmp/kids-short.mp4
           python -m app.video_qa /tmp/kids-video.mp4 --require-long
           python -m app.video_qa /tmp/kids-short.mp4 --require-vertical
+          python -c "from PIL import Image; import sys; expected=[(1280,720),(720,1280)]; actual=[Image.open(p).size for p in sys.argv[1:]]; print(list(zip(sys.argv[1:],actual))); assert actual == expected" /tmp/kids-thumbnail.jpg /tmp/kids-short-thumbnail.jpg
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
@@ -57,4 +62,6 @@ jobs:
             /tmp/kids-video.voices.json
             /tmp/kids-short.mp4
             /tmp/kids-short.voices.json
+            /tmp/kids-thumbnail.jpg
+            /tmp/kids-short-thumbnail.jpg
           retention-days: 3

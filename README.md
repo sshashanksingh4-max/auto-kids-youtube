@@ -9,7 +9,7 @@ Free-first tooling for planning and producing original Hindi children's cartoons
 - A procedural 2D renderer in `app/local_render.py`: per-frame character poses, walking motion, facial reactions, speaking mouths, props, moving garden layers, subtitles and camera push-ins.
 - An optional Higgsfield Seedance adapter. It is metered and blocked by default; scheduled runs must not call it unless `ALLOW_METERED_VIDEO_GENERATION=true` is deliberately set.
 - YouTube uploader adapters and an Apps Script bridge are present, but no end-to-end upload is wired to the scheduler. A publicly reachable video file and one-time Google authorization are still needed.
-- A GitHub Actions trial workflow that renders an MP4 artifact. This is a render trial, not an auto-publishing pipeline.
+- A GitHub Actions trial workflow that renders MP4s plus a clean 1280x720 episode thumbnail and a 720x1280 Short poster frame. This is a render trial, not an auto-publishing pipeline.
 - The trial renders a six-minute original Hindi episode from 12 authored story beats and a separate 40-second, four-beat Short; the Short preserves its complete 16:9 action over a moving blurred portrait background. Both outputs receive duration, dimensions, audio/video, and motion QA and are uploaded as artifacts.
 - A CI video check that requires audio/video streams and movement across one-second samples, so frozen renders fail the trial.
 
@@ -40,7 +40,7 @@ To request Svara voices for Chintu, Mini, Golu, Tinku and the narrator, set `KID
 ## Remaining work before publishing
 
 1. Improve the rig artwork, movement, lip-sync and Hindi voice quality; review full-length episodes by eye and ear.
-2. Assemble generated/local scenes into both long and vertical cuts, then add music/SFX and thumbnails.
+2. Assemble generated/local scenes into both long and vertical cuts, then add music/SFX and improve thumbnail design.
 3. Add automated audio, animation and safety quality gates.
 4. Connect video hosting to the Apps Script bridge, complete the private YouTube upload flow, and verify the Made-for-Kids setting.
 5. Add an analytics feedback loop and verify the complete path before calling the channel automated.

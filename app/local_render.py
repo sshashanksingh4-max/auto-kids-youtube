@@ -238,7 +238,7 @@ def draw_scaled_sprite(img, anchor_x, anchor_y, bounds, scale, painter):
     top=round(anchor_y+(bounds[1]-anchor_y)*scale)
     img.paste(sprite,(left,top),sprite)
 
-def draw_scene_frame(scene, scene_index, t, speaking, duration, speech_seconds, local_t):
+def draw_scene_frame(scene, scene_index, t, speaking, duration, speech_seconds, local_t, show_subtitles=True):
     action=scene["action"]
     beat=max(0.0,min(1.0,t/max(.1,duration)))
     camera=(scene_index*48)+math.sin(t*.55)*16
@@ -335,18 +335,40 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration, speech_seconds, 
             d.ellipse((px-5,py-5,px+5,py+5),fill=("#FF76A4" if i%2 else "#FFE16A"))
     rounded(d,(32,24,1248,105),22,"#FFFEF3",outline="#52AED0",width=3)
     d.text((61,40),scene["title"],font=font(38),fill="#173B53",stroke_width=0)
-    rounded(d,(70,620,1210,693),18,"#FFFFFF",outline="#FFE16A",width=3)
-    words=scene["line"].split()
-    chunks=[words[i:i+8] for i in range(0,len(words),8)]
-    chunk_index=min(len(chunks)-1,int(local_t/max(.1,speech_seconds)*len(chunks))) if chunks else 0
-    chunk=chunks[chunk_index] if chunks else []
-    d.text((93,622)," ".join(chunk[:4]),font=font(22),fill="#263746")
-    d.text((93,650)," ".join(chunk[4:]),font=font(22),fill="#263746")
+    if show_subtitles:
+        rounded(d,(70,620,1210,693),18,"#FFFFFF",outline="#FFE16A",width=3)
+        words=scene["line"].split()
+        chunks=[words[i:i+8] for i in range(0,len(words),8)]
+        chunk_index=min(len(chunks)-1,int(local_t/max(.1,speech_seconds)*len(chunks))) if chunks else 0
+        chunk=chunks[chunk_index] if chunks else []
+        d.text((93,622)," ".join(chunk[:4]),font=font(22),fill="#263746")
+        d.text((93,650)," ".join(chunk[4:]),font=font(22),fill="#263746")
     zoom=1.025+.07*math.sin(math.pi*beat)
     nw,nh=int(W*zoom),int(H*zoom)
     img=img.resize((nw,nh),Image.Resampling.BICUBIC)
     ox=(nw-W)//2; oy=(nh-H)//2
     return img.crop((ox,oy,ox+W,oy+H))
+
+def render_thumbnail(scene: dict, output_path: Path):
+    """Save a clean, high-resolution story frame without dialogue captions."""
+    output_path.parent.mkdir(parents=True,exist_ok=True)
+    speaking={"chintu":False,"mini":False,"tinku":False,"golu":False}
+    speaker=scene["speaker"]
+    if speaker in speaking:
+        speaking[speaker]=True
+    frame=draw_scene_frame(
+        scene,0,4.0,speaking,float(scene.get("seconds",10)),8.0,4.0,
+        show_subtitles=False,
+    )
+    frame.save(output_path,"JPEG",quality=94,optimize=True,progressive=True)
+
+def extract_video_thumbnail(source_video: Path, output_path: Path, at_seconds: float=4.0):
+    """Extract a sharp poster frame while preserving the video's aspect ratio."""
+    output_path.parent.mkdir(parents=True,exist_ok=True)
+    run([
+        "ffmpeg","-y","-v","error","-ss",str(at_seconds),"-i",str(source_video),
+        "-frames:v","1","-q:v","2",str(output_path),
+    ])
 
 def run(cmd, **kwargs):
     subprocess.run(cmd, check=True, **kwargs)
@@ -461,8 +483,12 @@ if __name__=="__main__":
     topic=os.getenv("KIDS_TOPIC","चिंटू और दोस्तों का चमकता बीज")
     output=Path(os.getenv("KIDS_OUTPUT","/tmp/kids-video.mp4"))
     short_output=Path(os.getenv("KIDS_SHORT_OUTPUT","/tmp/kids-short.mp4"))
+    thumbnail=Path(os.getenv("KIDS_THUMBNAIL_OUTPUT",str(output.with_suffix(".jpg"))))
+    short_thumbnail=Path(os.getenv("KIDS_SHORT_THUMBNAIL_OUTPUT",str(short_output.with_suffix(".jpg"))))
     short_landscape=ASSET_DIR/"short-landscape.mp4"
     build_video(topic,output,SCENES)
+    render_thumbnail(SCENES[0],thumbnail)
     build_video(topic,short_landscape,SHORT_SCENES)
     render_vertical_short(short_landscape,short_output)
-    print({"long":str(output),"short":str(short_output)})
+    extract_video_thumbnail(short_output,short_thumbnail)
+    print({"long":str(output),"short":str(short_output),"thumbnail":str(thumbnail),"short_thumbnail":str(short_thumbnail)})
