@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     exa_api_key: str | None = None
     higgsfield_api_key_id: str | None = None
     higgsfield_api_key_secret: str | None = None
-    higgsfield_video_model: str = "seedance_2_5"
+    higgsfield_video_model: str = "seedance_2.0"
     higgsfield_voice_id: str | None = None
     higgsfield_voice_type: str = "preset"
     youtube_client_id: str | None = None
