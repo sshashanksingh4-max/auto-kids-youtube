@@ -8,10 +8,14 @@ on:
       - "requirements.txt"
   workflow_dispatch:
     inputs:
-      topic:
-        description: "Optional Hindi story topic"
-        required: false
-        default: ""
+      tts_provider:
+        description: Hindi voice path for this one trial render
+        type: choice
+        options:
+          - svara
+          - preview
+        default: svara
+        required: true
   schedule:
     - cron: "30 3 * * *"
 
@@ -21,8 +25,10 @@ jobs:
     permissions:
       contents: read
     env:
-      KIDS_TOPIC: ${{ github.event.inputs.topic || 'चिंटू और दोस्तों की जादुई किताब' }}
       KIDS_OUTPUT: /tmp/kids-video.mp4
+      KIDS_SHORT_OUTPUT: /tmp/kids-short.mp4
+      KIDS_THUMBNAIL_OUTPUT: /tmp/kids-thumbnail.jpg
+      KIDS_SHORT_THUMBNAIL_OUTPUT: /tmp/kids-short-thumbnail.jpg
 
     steps:
       - name: Checkout
@@ -33,7 +39,27 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ffmpeg espeak fonts-noto-core
           python -m pip install --upgrade pip
-          pip install pillow
+          pip install pillow httpx google-api-python-client google-auth
+
+      - name: Select voice path
+        env:
+          REQUESTED_TTS_PROVIDER: ${{ vars.KIDS_TTS_PROVIDER }}
+          DISPATCH_TTS_PROVIDER: ${{ inputs.tts_provider }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            echo "KIDS_TTS_PROVIDER=preview" >> "$GITHUB_ENV"
+          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$DISPATCH_TTS_PROVIDER" == "svara" ]]; then
+            echo "KIDS_TTS_PROVIDER=svara" >> "$GITHUB_ENV"
+          elif [[ "$GITHUB_EVENT_NAME" == "schedule" && "$REQUESTED_TTS_PROVIDER" == "svara" && -n "$YOUTUBE_CLIENT_ID" && -n "$YOUTUBE_CLIENT_SECRET" && -n "$YOUTUBE_REFRESH_TOKEN" ]]; then
+            echo "KIDS_TTS_PROVIDER=svara" >> "$GITHUB_ENV"
+          elif [[ "$REQUESTED_TTS_PROVIDER" == "svara" ]]; then
+            echo "KIDS_TTS_PROVIDER=preview" >> "$GITHUB_ENV"
+          else
+            echo "KIDS_TTS_PROVIDER=preview" >> "$GITHUB_ENV"
+          fi
 
       - name: Render Hindi kids trial video
         run: python -m app.local_render
@@ -41,12 +67,31 @@ jobs:
       - name: Validate output
         run: |
           test -s /tmp/kids-video.mp4
+          test -s /tmp/kids-short.mp4
+          test -s /tmp/kids-thumbnail.jpg
+          test -s /tmp/kids-short-thumbnail.jpg
           ffprobe -v error -show_entries format=duration,size -of default=nw=1 /tmp/kids-video.mp4
-          python -m app.video_qa /tmp/kids-video.mp4
+          ffprobe -v error -show_entries stream=width,height -of csv=s=x:p=0 /tmp/kids-short.mp4
+          python -m app.video_qa /tmp/kids-video.mp4 --require-long
+          python -m app.video_qa /tmp/kids-short.mp4 --require-vertical
+          python -c "from PIL import Image; import sys; expected=[(1280,720),(720,1280)]; actual=[Image.open(p).size for p in sys.argv[1:]]; print(list(zip(sys.argv[1:],actual))); assert actual == expected" /tmp/kids-thumbnail.jpg /tmp/kids-short-thumbnail.jpg
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: hindi-kids-trial-video
-          path: /tmp/kids-video.mp4
+          path: |
+            /tmp/kids-video.mp4
+            /tmp/kids-video.voices.json
+            /tmp/kids-short.mp4
+            /tmp/kids-short.voices.json
+            /tmp/kids-thumbnail.jpg
+            /tmp/kids-short-thumbnail.jpg
           retention-days: 3
+
+      - name: Optionally upload natural-voice videos as private drafts
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: python -m app.publish_trial

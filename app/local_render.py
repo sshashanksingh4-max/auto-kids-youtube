@@ -7,15 +7,18 @@ gaze, props and a moving camera. It is a 2D rigged cartoon, not 3D or AI video.
 from __future__ import annotations
 
 import math
+import json
 import os
 import subprocess
 import wave
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+from app.voice import synthesize_scene_voice
 
 W, H, FPS = 1280, 720, 24
 ASSET_DIR = Path(os.getenv("KIDS_ASSET_DIR", "/tmp/kids-assets"))
+STORY_TITLE = "चिंटू और दोस्तों का चमकता बीज"
 FONT_PATHS = (
     "C:/Windows/Fonts/Nirmala.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf",
@@ -30,17 +33,29 @@ PALETTE = {
     "cream": "#FFE0B4", "green": "#4A9C62", "white": "#FFFDF7",
 }
 
-# Each beat is a short, playable scene. Actions are interpreted by the rigs
-# below; the narration is intentionally in natural, short Hindi sentences.
+# Twelve authored beats form a six-minute original story. Each action reuses
+# the same consistent character rigs while dialogue, props and timed gestures
+# advance a complete seed-to-garden arc.
 SCENES = [
-    {"title":"चमकता हुआ बीज", "line":"अरे, यह चमकता बीज कहाँ से आया?", "action":"discover", "place":"garden", "speaker":"chintu"},
-    {"title":"मिन्नी की तरकीब", "line":"इसे मिट्टी में लगाते हैं। हम रोज़ पानी देंगे।", "action":"plant", "place":"garden", "speaker":"mini"},
-    {"title":"गोलू की मदद", "line":"मेरी छोटी बोतल से पानी लो!", "action":"water", "place":"garden", "speaker":"golu"},
-    {"title":"टिंकू देखता है", "line":"पौधे को धूप भी चाहिए।", "action":"point", "place":"garden", "speaker":"tinku"},
-    {"title":"नन्हा पौधा", "line":"मिनी, इस गमले को धूप में ले चलें।", "action":"carry", "place":"garden", "speaker":"chintu"},
-    {"title":"खुशी की कली", "line":"वाह! हमारी कली खिल गई!", "action":"bloom", "place":"garden", "speaker":"mini"},
-    {"title":"बीज बाँटें", "line":"दोस्तों ने और बीज लगाए। बगीचा रंगों से भर गया।", "action":"celebrate", "place":"garden", "speaker":"narrator"},
-    {"title":"आज की सीख", "line":"प्यार और देखभाल से छोटी चीज़ भी बड़ा बदलाव ला सकती है।", "action":"wave", "place":"garden", "speaker":"narrator"},
+    {"title":"चमकता हुआ बीज", "line":"एक सुनहरी सुबह चिंटू अपने दोस्तों के साथ बगीचे में खेल रहा था। तभी घास के पास एक छोटी रोशनी चमकी। चिंटू धीरे से झुका और बोला, अरे, यह चमकता बीज कहाँ से आया? मिन्नी ने ध्यान से देखा और गोलू उछलकर पास आ गया।", "action":"discover", "place":"garden", "speaker":"chintu", "seconds":30},
+    {"title":"मिन्नी की योजना", "line":"मिन्नी ने कहा, शायद इसे मिट्टी और देखभाल चाहिए। हम इसे गमले में लगाएंगे, लेकिन पहले सही जगह चुनेंगे। चिंटू ने नरम मिट्टी ढूँढ़ी और गोलू ने सूखे पत्ते हटाए। टिंकू ने अपने छोटे सेंसर से जाँचकर बताया कि मिट्टी साफ और नम है।", "action":"plant", "place":"garden", "speaker":"mini", "seconds":30},
+    {"title":"पहली बूँदें", "line":"गोलू अपनी छोटी बोतल लेकर आया। उसने धीरे-धीरे पानी डाला ताकि बीज बह न जाए। चिंटू ने गमले को थामे रखा और मिन्नी ने देखा कि पानी मिट्टी में समा रहा है। गोलू मुस्कराकर बोला, अब इसे रोज़ थोड़ा पानी मिलेगा, बहुत ज़्यादा नहीं।", "action":"water", "place":"garden", "speaker":"golu", "seconds":30},
+    {"title":"धूप का रास्ता", "line":"टिंकू ने आसमान की ओर इशारा किया। पौधों को पानी के साथ धूप भी चाहिए। बगीचे के एक कोने में पेड़ की छाया थी, इसलिए दोस्तों ने धूप वाली जगह खोजी। मिन्नी ने सुबह की किरणें देखीं और चिंटू को गमला वहाँ रखने का सुझाव दिया।", "action":"point", "place":"garden", "speaker":"tinku", "seconds":30},
+    {"title":"मिलकर उठाएँ", "line":"गमला थोड़ा भारी था, इसलिए चिंटू ने अकेले उठाने की कोशिश नहीं की। उसने मिन्नी से मदद माँगी। दोनों ने नीचे से पकड़कर धीरे-धीरे कदम बढ़ाए। गोलू आगे रास्ता दिखाता रहा और टिंकू ने बताया कि वे सुरक्षित जगह पहुँच गए हैं।", "action":"carry", "place":"garden", "speaker":"chintu", "seconds":30},
+    {"title":"बगीचे की रखवाली", "line":"अगली सुबह दोस्तों ने गमले को देखा। मिट्टी सूखी लग रही थी, मगर बीज अभी भी ठीक था। गोलू ने छोटी मात्रा में पानी दिया, मिन्नी ने गमले के पास गिरी टहनी हटाई और चिंटू ने पौधे को तेज़ हवा से बचाने के लिए उसे दीवार के पास रखा।", "action":"water", "place":"garden", "speaker":"mini", "seconds":30},
+    {"title":"नन्ही कोंपल", "line":"कुछ दिनों बाद मिट्टी से हरी कोंपल बाहर आई। चिंटू खुशी से उछला, लेकिन मिन्नी ने कहा कि हमें इसे धीरे बढ़ने देना चाहिए। गोलू ने पास की मिट्टी नरम की और टिंकू ने सबको याद दिलाया कि पौधे को रोज़ देखना है, खींचना नहीं।", "action":"bloom", "place":"garden", "speaker":"narrator", "seconds":30},
+    {"title":"साझा देखभाल", "line":"अब हर दोस्त की एक छोटी ज़िम्मेदारी थी। चिंटू गमले को देखता, मिन्नी पानी की मात्रा जाँचती, गोलू सूखे पत्ते हटाता और टिंकू धूप का समय बताता। किसी दिन एक दोस्त व्यस्त होता तो बाकी उसकी मदद करते। पौधा अकेले किसी एक की मेहनत से नहीं, सबकी देखभाल से बढ़ा।", "action":"celebrate", "place":"garden", "speaker":"narrator", "seconds":30},
+    {"title":"फूलों की खुशबू", "line":"एक सुबह पौधे पर छोटी कली दिखाई दी। मिन्नी ने उसे छुए बिना सबको पास बुलाया। कली धीरे-धीरे खुली और बगीचे में रंग भर गया। गोलू ने दूर से ताली बजाई, चिंटू ने खुशी बाँटी और टिंकू की नीली आँखें खुशी से चमक उठीं।", "action":"bloom", "place":"garden", "speaker":"mini", "seconds":30},
+    {"title":"नई जगह की खोज", "line":"फूल देखकर दोस्तों को याद आया कि उनके पास और भी बीज हैं। उन्होंने बगीचे में खाली जगह ढूँढ़ी। चिंटू ने हर पौधे के लिए जगह छोड़ी, मिन्नी ने धूप की दिशा देखी और गोलू ने कहा कि तितलियों के लिए भी कुछ फूल रहने चाहिए।", "action":"carry", "place":"garden", "speaker":"chintu", "seconds":30},
+    {"title":"रंगों से भरा बगीचा", "line":"कुछ समय बाद कई छोटे पौधे उग आए। तितलियाँ फूलों के ऊपर मंडराईं और दोस्त पानी बाँटने लगे। टिंकू ने समझाया कि पौधे हवा और जीवों के लिए उपयोगी होते हैं। गोलू ने मज़ाक में अपनी बोतल छिपाई, फिर हँसते हुए उसे सबके साथ साझा कर दिया।", "action":"water", "place":"garden", "speaker":"golu", "seconds":30},
+    {"title":"छोटी कोशिश, बड़ा बदलाव", "line":"शाम को चारों दोस्त बगीचे के पास बैठे। चिंटू ने कहा कि एक छोटा बीज इतना सुंदर बगीचा बन सकता है, यह उसने नहीं सोचा था। मिन्नी बोली, धैर्य और मिलकर काम करना ज़रूरी है। उन्होंने सीखा कि प्यार और देखभाल से छोटी कोशिश भी बड़ा बदलाव ला सकती है।", "action":"wave", "place":"garden", "speaker":"narrator", "seconds":30},
+]
+
+SHORT_SCENES = [
+    {"title":"चमकता हुआ बीज!", "line":"अरे, घास में यह चमकता बीज किसका है? चलो, इसे मिलकर उगाते हैं!", "action":"discover", "place":"garden", "speaker":"chintu", "seconds":10},
+    {"title":"दोस्ती की योजना", "line":"मिट्टी, पानी और धूप—मिन्नी ने सही तरकीब खोज ली!", "action":"point", "place":"garden", "speaker":"mini", "seconds":10},
+    {"title":"बूँद से कली", "line":"गोलू ने पानी दिया और देखो, नन्ही कली खिल गई!", "action":"water", "place":"garden", "speaker":"golu", "seconds":10},
+    {"title":"सबका बगीचा", "line":"सबने बीज बाँटे। मिलकर की छोटी कोशिश बड़ा बगीचा बन गई!", "action":"celebrate", "place":"garden", "speaker":"narrator", "seconds":10},
 ]
 
 def font(size: int):
@@ -91,7 +106,8 @@ def background(t: float, scene_index: int, camera: float) -> Image.Image:
 
 def draw_human(d: ImageDraw.ImageDraw, x: float, floor: float, kind: str,
                t: float, emotion: str, speaking: bool, facing: int = 1,
-               walk: float = 0.0, gesture: float = 0.0, scale: float = 1.0):
+               walk: float = 0.0, gesture: float = 0.0, scale: float = 1.0,
+               interaction: tuple[float,float] | None = None):
     """A small articulated cartoon rig with limb swing and changing face."""
     s=scale; bob=math.sin(t*8)*3*s if walk else abs(math.sin(t*5))*2*s
     x=float(x); y=floor-bob
@@ -126,6 +142,15 @@ def draw_human(d: ImageDraw.ImageDraw, x: float, floor: float, kind: str,
         else:
             elbow=(x+side*43*s,y-78*s+swing*.4)
             hand=(x+side*50*s,y-55*s+swing)
+        if side==facing and interaction is not None:
+            # Reach toward the shared seed, pot or flower, then retract with
+            # the gesture pulse; elbows follow the wrist instead of pointing
+            # in a fixed direction unrelated to the prop.
+            default_hand=hand
+            hand=(default_hand[0]+(interaction[0]-default_hand[0])*active,
+                  default_hand[1]+(interaction[1]-default_hand[1])*active)
+            elbow=(shoulder[0]+(hand[0]-shoulder[0])*.58,
+                   shoulder[1]+(hand[1]-shoulder[1])*.62-10*s)
         d.line((*shoulder,*elbow),fill=shirt,width=max(8,int(15*s)))
         d.line((*elbow,*hand),fill=skin,width=max(7,int(12*s)))
         d.ellipse((hand[0]-7*s,hand[1]-7*s,hand[0]+7*s,hand[1]+7*s),fill=skin)
@@ -214,7 +239,7 @@ def draw_scaled_sprite(img, anchor_x, anchor_y, bounds, scale, painter):
     top=round(anchor_y+(bounds[1]-anchor_y)*scale)
     img.paste(sprite,(left,top),sprite)
 
-def draw_scene_frame(scene, scene_index, t, speaking, duration):
+def draw_scene_frame(scene, scene_index, t, speaking, duration, speech_seconds, local_t, show_subtitles=True):
     action=scene["action"]
     beat=max(0.0,min(1.0,t/max(.1,duration)))
     camera=(scene_index*48)+math.sin(t*.55)*16
@@ -259,16 +284,27 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
             d.line((pot_x+60,520+pot_bob,pot_x+60,492+pot_bob),fill="#318748",width=6)
             d.ellipse((pot_x+43,487+pot_bob,pot_x+59,499+pot_bob),fill="#78C86A")
             d.ellipse((pot_x+61,487+pot_bob,pot_x+77,499+pot_bob),fill="#78C86A")
-    gesture=max(0.0,math.sin(math.pi*beat))
+    gesture=max(0.0,math.sin(math.pi*beat))*(.72+.28*math.sin(t*3.1))
     chintu_emotion="surprised" if action in ("discover","bloom") else ("thinking" if action=="plant" else "happy")
     mini_emotion="thinking" if action in ("plant","discover") else ("surprised" if action=="bloom" else "happy")
     scale=1.27 if action not in ("celebrate","wave") else 1.13
+    discover_seed_y=493+abs(math.sin(t*4))*9
+    chintu_target=None
+    mini_target=None
+    if action=="discover": chintu_target=(cx+55,discover_seed_y)
+    if action=="plant": mini_target=(pot_x+60,510)
+    if action=="water": mini_target=(pot_x+105,540)
+    if action=="carry":
+        chintu_target=(pot_x+12,548); mini_target=(pot_x+108,548)
+    if action=="bloom": mini_target=(pot_x+60,450)
     draw_human(d,cx,595,"chintu",t,chintu_emotion,speaking.get("chintu",False),1,
                walk=1.0 if action=="carry" else 0,
-               gesture=gesture if action in ("discover","plant","carry","celebrate") else 0,scale=scale)
+               gesture=gesture if action in ("discover","plant","carry","celebrate") else 0,scale=scale,
+               interaction=chintu_target)
     draw_human(d,mini_x,595,"mini",t,mini_emotion,speaking.get("mini",False),-1,
                walk=1.0 if action=="carry" else 0,
-               gesture=gesture if action in ("plant","water","bloom","celebrate") else 0,scale=scale)
+               gesture=gesture if action in ("plant","water","bloom","celebrate") else 0,scale=scale,
+               interaction=mini_target)
     if present[2]:
         draw_scaled_sprite(img,squirrel_x,596,(squirrel_x-40,471,squirrel_x+85,604),1.28,
             lambda sd: draw_squirrel(sd,squirrel_x,596,t,action,gesture,speaking.get("golu",False)))
@@ -280,7 +316,7 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
     # The seed drops into soil, water arcs from Golu's bottle, and the sprout
     # responds on the shared prop instead of adding unrelated ambient motion.
     if action=="discover":
-        seed_y=493+abs(math.sin(t*4))*9
+        seed_y=discover_seed_y
         sx=cx+49
         d.ellipse((sx-12,seed_y-12,sx+12,seed_y+12),fill="#FFE269",outline="#FFF8B0",width=3)
         for a in range(0,360,90):
@@ -292,7 +328,7 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
     if action=="water":
         for i in range(6):
             drop_t=(t*1.7+i*.16)%1
-            px=690+drop_t*105; py=435+drop_t*105-math.sin(drop_t*math.pi)*20
+            px=918-drop_t*300; py=435+drop_t*105-math.sin(drop_t*math.pi)*20
             d.ellipse((px-4,py-8,px+4,py+8),fill="#49BDE8",outline="#D8F6FF")
     if action=="celebrate":
         for i in range(18):
@@ -300,13 +336,40 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
             d.ellipse((px-5,py-5,px+5,py+5),fill=("#FF76A4" if i%2 else "#FFE16A"))
     rounded(d,(32,24,1248,105),22,"#FFFEF3",outline="#52AED0",width=3)
     d.text((61,40),scene["title"],font=font(38),fill="#173B53",stroke_width=0)
-    rounded(d,(70,620,1210,693),18,"#FFFFFF",outline="#FFE16A",width=3)
-    d.text((93,632),scene["line"],font=font(26),fill="#263746")
+    if show_subtitles:
+        rounded(d,(70,620,1210,693),18,"#FFFFFF",outline="#FFE16A",width=3)
+        words=scene["line"].split()
+        chunks=[words[i:i+8] for i in range(0,len(words),8)]
+        chunk_index=min(len(chunks)-1,int(local_t/max(.1,speech_seconds)*len(chunks))) if chunks else 0
+        chunk=chunks[chunk_index] if chunks else []
+        d.text((93,622)," ".join(chunk[:4]),font=font(22),fill="#263746")
+        d.text((93,650)," ".join(chunk[4:]),font=font(22),fill="#263746")
     zoom=1.025+.07*math.sin(math.pi*beat)
     nw,nh=int(W*zoom),int(H*zoom)
     img=img.resize((nw,nh),Image.Resampling.BICUBIC)
     ox=(nw-W)//2; oy=(nh-H)//2
     return img.crop((ox,oy,ox+W,oy+H))
+
+def render_thumbnail(scene: dict, output_path: Path):
+    """Save a clean, high-resolution story frame without dialogue captions."""
+    output_path.parent.mkdir(parents=True,exist_ok=True)
+    speaking={"chintu":False,"mini":False,"tinku":False,"golu":False}
+    speaker=scene["speaker"]
+    if speaker in speaking:
+        speaking[speaker]=True
+    frame=draw_scene_frame(
+        scene,0,4.0,speaking,float(scene.get("seconds",10)),8.0,4.0,
+        show_subtitles=False,
+    )
+    frame.save(output_path,"JPEG",quality=94,optimize=True,progressive=True)
+
+def extract_video_thumbnail(source_video: Path, output_path: Path, at_seconds: float=4.0):
+    """Extract a sharp poster frame while preserving the video's aspect ratio."""
+    output_path.parent.mkdir(parents=True,exist_ok=True)
+    run([
+        "ffmpeg","-y","-v","error","-ss",str(at_seconds),"-i",str(source_video),
+        "-frames:v","1","-q:v","2",str(output_path),
+    ])
 
 def run(cmd, **kwargs):
     subprocess.run(cmd, check=True, **kwargs)
@@ -333,25 +396,20 @@ def concatenate_scene_audio(wavs: list[Path], durations: list[float], output: Pa
             silence_samples=max(0,round((duration-speech_seconds)*params.framerate))
             combined.writeframes(b"\x00"*(silence_samples*params.nchannels*params.sampwidth))
 
-def synthesize_voice(text: str, out_wav: Path):
-    # Free offline Hindi fallback. Hosted providers remain opt-in; no paid
-    # credits are used. Keep speed moderate and lines short for intelligibility.
-    run(["espeak","-v","hi","-s","132","-p","48","-a","165","-w",str(out_wav),text])
-
-def build_video(topic: str, out_mp4: Path):
+def build_video(out_mp4: Path, scene_definitions: list[dict] | None = None):
     ASSET_DIR.mkdir(parents=True,exist_ok=True)
-    scenes=[dict(item) for item in SCENES]
-    if topic and topic.strip() and topic.strip() not in ("चिंटू और दोस्तों की जादुई किताब", "चिंटू और दोस्तों की नई खोज"):
-        # The fixed original episode is safe and coherent; preserve the user's
-        # topic in the opening slate instead of pretending to have rewritten it.
-        scenes[0]["title"]=topic.strip()[:32]
+    scenes=[dict(item) for item in (scene_definitions if scene_definitions is not None else SCENES)]
     durations=[]
+    speech_durations=[]
     wavs=[]
+    voice_modes=[]
     for i,scene in enumerate(scenes):
         wav=ASSET_DIR/f"line_{i:02d}.wav"
-        synthesize_voice(scene["line"],wav)
+        voice_modes.append(synthesize_scene_voice(scene["line"],scene["speaker"],wav))
         wavs.append(wav)
-        durations.append(max(4.8,speech_duration(wav)+1.1))
+        speech_seconds=speech_duration(wav)
+        speech_durations.append(speech_seconds)
+        durations.append(max(float(scene.get("seconds",4.8)),speech_seconds+1.1))
     total=sum(durations)
     audio=ASSET_DIR/"narration.wav"
     concatenate_scene_audio(wavs,durations,audio)
@@ -363,7 +421,7 @@ def build_video(topic: str, out_mp4: Path):
     previous_frame=None
     transition_frames=round(.42*FPS)
     try:
-        for si,(scene,duration) in enumerate(zip(scenes,durations)):
+        for si,(scene,duration,speech_seconds) in enumerate(zip(scenes,durations,speech_durations)):
             frames=math.ceil(duration*FPS)
             spk=scene["speaker"]
             for fi in range(frames):
@@ -371,9 +429,9 @@ def build_video(topic: str, out_mp4: Path):
                 # Approximate word timing from the speech line; the character
                 # mouth moves only during the corresponding spoken scene.
                 speaking={"chintu":False,"mini":False,"tinku":False,"golu":False}
-                if spk in speaking and local_t < duration-0.75:
+                if spk in speaking and local_t < speech_seconds:
                     speaking[spk]=int(local_t*8)%3 != 0
-                frame=draw_scene_frame(scene,si,offset+local_t,speaking,duration)
+                frame=draw_scene_frame(scene,si,offset+local_t,speaking,duration,speech_seconds,local_t)
                 if previous_frame is not None and fi < transition_frames:
                     # Brief cross-dissolves join story beats as a cartoon
                     # sequence instead of a hard cut between poster-like cards.
@@ -391,9 +449,46 @@ def build_video(topic: str, out_mp4: Path):
     muxed=ASSET_DIR/"final.mp4"
     run(["ffmpeg","-y","-i",str(out_mp4),"-i",str(audio),"-map","0:v:0","-map","1:a:0","-af","apad","-t",f"{total:.2f}","-c:v","copy","-c:a","aac","-b:a","128k","-movflags","+faststart",str(muxed)])
     muxed.replace(out_mp4)
+    # Keep honest provenance alongside the render so QA and later publishing
+    # gates can distinguish preview audio from the requested natural-voice path.
+    out_mp4.with_suffix(".voices.json").write_text(
+        json.dumps({
+            "provider": os.getenv("KIDS_TTS_PROVIDER", "svara").strip().lower(),
+            "scene_voice_modes": voice_modes,
+            "note": "eSpeak preview audio is robotic and must not be published.",
+        }, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return out_mp4
+
+def render_vertical_short(source_mp4: Path, short_path: Path):
+    """Render a separate 40-second story summary in a portrait 9:16 frame."""
+    short_path.parent.mkdir(parents=True,exist_ok=True)
+    run([
+        "ffmpeg","-y","-i",str(source_mp4),"-filter_complex",
+        "[0:v]split=2[bg][fg];"
+        "[bg]scale=320:568:force_original_aspect_ratio=increase,crop=320:568,boxblur=12:4,scale=720:1280[bgblur];"
+        "[fg]scale=720:-2[foreground];"
+        "[bgblur][foreground]overlay=(W-w)/2:(H-h)/2,setsar=1[v]",
+        "-map","[v]","-map","0:a:0","-c:v","libx264","-preset","veryfast",
+        "-crf","22","-pix_fmt","yuv420p","-c:a","aac","-b:a","128k",
+        "-movflags","+faststart",str(short_path),
+    ])
+    source_voice_metadata=source_mp4.with_suffix(".voices.json")
+    if source_voice_metadata.exists():
+        short_path.with_suffix(".voices.json").write_text(
+            source_voice_metadata.read_text(encoding="utf-8"),encoding="utf-8"
+        )
 
 if __name__=="__main__":
-    topic=os.getenv("KIDS_TOPIC","चिंटू और दोस्तों की बगीचे वाली खोज")
     output=Path(os.getenv("KIDS_OUTPUT","/tmp/kids-video.mp4"))
-    build_video(topic,output)
-    print(output)
+    short_output=Path(os.getenv("KIDS_SHORT_OUTPUT","/tmp/kids-short.mp4"))
+    thumbnail=Path(os.getenv("KIDS_THUMBNAIL_OUTPUT",str(output.with_suffix(".jpg"))))
+    short_thumbnail=Path(os.getenv("KIDS_SHORT_THUMBNAIL_OUTPUT",str(short_output.with_suffix(".jpg"))))
+    short_landscape=ASSET_DIR/"short-landscape.mp4"
+    build_video(output,SCENES)
+    render_thumbnail(SCENES[0],thumbnail)
+    build_video(short_landscape,SHORT_SCENES)
+    render_vertical_short(short_landscape,short_output)
+    extract_video_thumbnail(short_output,short_thumbnail)
+    print({"long":str(output),"short":str(short_output),"thumbnail":str(thumbnail),"short_thumbnail":str(short_thumbnail)})
