@@ -33,13 +33,13 @@ PALETTE = {
 # Each beat is a short, playable scene. Actions are interpreted by the rigs
 # below; the narration is intentionally in natural, short Hindi sentences.
 SCENES = [
-    {"title":"चमकता हुआ बीज", "line":"एक सुबह चिंटू को बगीचे में चमकता हुआ बीज मिला।", "action":"discover", "place":"garden", "speaker":"chintu"},
-    {"title":"मिन्नी की तरकीब", "line":"मिन्नी बोली, इसे मिट्टी में लगाते हैं और रोज़ पानी देंगे।", "action":"plant", "place":"garden", "speaker":"mini"},
-    {"title":"गोलू की मदद", "line":"गोलू ने अपनी छोटी बोतल से बीज को पानी दिया।", "action":"water", "place":"garden", "speaker":"golu"},
-    {"title":"टिंकू देखता है", "line":"टिंकू ने देखा, पौधे को धूप भी चाहिए।", "action":"point", "place":"garden", "speaker":"tinku"},
-    {"title":"नन्हा पौधा", "line":"सबने मिलकर गमले को धूप वाली जगह पर रखा।", "action":"carry", "place":"garden", "speaker":"chintu"},
-    {"title":"खुशी की कली", "line":"कुछ दिनों बाद पौधे पर रंगीन फूल खिल गया।", "action":"bloom", "place":"garden", "speaker":"mini"},
-    {"title":"बीज बाँटें", "line":"दोस्तों ने नए बीज लगाए ताकि पूरा बगीचा खिल उठे।", "action":"celebrate", "place":"garden", "speaker":"narrator"},
+    {"title":"चमकता हुआ बीज", "line":"अरे, यह चमकता बीज कहाँ से आया?", "action":"discover", "place":"garden", "speaker":"chintu"},
+    {"title":"मिन्नी की तरकीब", "line":"इसे मिट्टी में लगाते हैं। हम रोज़ पानी देंगे।", "action":"plant", "place":"garden", "speaker":"mini"},
+    {"title":"गोलू की मदद", "line":"मेरी छोटी बोतल से पानी लो!", "action":"water", "place":"garden", "speaker":"golu"},
+    {"title":"टिंकू देखता है", "line":"पौधे को धूप भी चाहिए।", "action":"point", "place":"garden", "speaker":"tinku"},
+    {"title":"नन्हा पौधा", "line":"मिनी, इस गमले को धूप में ले चलें।", "action":"carry", "place":"garden", "speaker":"chintu"},
+    {"title":"खुशी की कली", "line":"वाह! हमारी कली खिल गई!", "action":"bloom", "place":"garden", "speaker":"mini"},
+    {"title":"बीज बाँटें", "line":"दोस्तों ने और बीज लगाए। बगीचा रंगों से भर गया।", "action":"celebrate", "place":"garden", "speaker":"narrator"},
     {"title":"आज की सीख", "line":"प्यार और देखभाल से छोटी चीज़ भी बड़ा बदलाव ला सकती है।", "action":"wave", "place":"garden", "speaker":"narrator"},
 ]
 
@@ -159,8 +159,8 @@ def draw_human(d: ImageDraw.ImageDraw, x: float, floor: float, kind: str,
     else:
         d.arc((hx-13*s,hy+8*s,hx+13*s,hy+28*s),5,175,fill="#743B3A",width=max(2,int(3*s)))
 
-def draw_squirrel(d,x,floor,t,action,gesture=0,speaking=False):
-    s=.74; bob=abs(math.sin(t*6))*6; y=floor-bob
+def draw_squirrel(d,x,floor,t,action,gesture=0,speaking=False,scale=1.0):
+    s=.74*scale; bob=abs(math.sin(t*6))*6*s; y=floor-bob
     d.ellipse((x-36,y-7,x+36,y+5),fill="#4E8A4E")
     # curled tail swishes, with a cream inner patch
     d.ellipse((x+12,y-91,x+79,y-24),fill="#9B6747")
@@ -181,8 +181,8 @@ def draw_squirrel(d,x,floor,t,action,gesture=0,speaking=False):
         d.line((x+20,y-49,x+47,y-31),fill="#9B6747",width=8)
         d.arc((x+40,y-30,x+68,y-2),180,360,fill="#57BFE8",width=5)
 
-def draw_robot(d,x,floor,t,speaking,point=False):
-    s=.76; y=floor+math.sin(t*4)*2
+def draw_robot(d,x,floor,t,speaking,point=False,scale=1.0):
+    s=.76*scale; y=floor+math.sin(t*4)*2*s
     d.ellipse((x-36,floor-7,x+36,floor+5),fill="#4E8A4E")
     rounded(d,(x-28,y-66,x+28,y-9),13,"#EAF5F9",outline="#6CA8C5",width=3)
     rounded(d,(x-33,y-119,x+33,y-61),15,"#F8FCFF",outline="#6CA8C5",width=3)
@@ -205,77 +205,92 @@ def draw_robot(d,x,floor,t,speaking,point=False):
         d.ellipse((x+30,y-31+math.sin(t*4)*7,x+41,y-20+math.sin(t*4)*7),fill="#F39A42")
 
 def draw_scene_frame(scene, scene_index, t, speaking, duration):
-    camera=(scene_index*32)+math.sin(t*.7)*12
+    action=scene["action"]
+    beat=max(0.0,min(1.0,t/max(.1,duration)))
+    camera=(scene_index*48)+math.sin(t*.55)*16
     img=background(t,scene_index,camera)
     d=ImageDraw.Draw(img)
-    action=scene["action"]
-    # Simple staging map changes blocking and directs gaze toward meaningful actions.
-    cx=460+math.sin(t*.65)*9
-    mini_x=690+math.sin(t*.5+1)*8
-    squirrel_x=870
-    robot_x=1050
-    if action=="discover":
-        cx-=50
-    if action in ("plant","water","bloom","carry"):
-        # A small shared prop anchors plant/water/bloom interaction.
-        pot_bob=abs(math.sin(t*9))*3 if action=="carry" else 0
-        pot_x=535+math.sin(t*9)*3 if action=="carry" else 535
-        rounded(d,(pot_x,523+pot_bob,pot_x+99,599+pot_bob),13,"#C47648",outline="#8D4F37",width=4)
-        d.ellipse((pot_x+10,516+pot_bob,pot_x+89,538+pot_bob),fill="#533E30")
+    # Blocking changes with the story beat. Close shots keep the speaking
+    # character and the shared prop readable; only group beats use a wide cast.
+    cast={
+        "discover": (370, 815, 1070, 1090),
+        "plant": (360, 750, 1040, 1090),
+        "water": (330, 650, 850, 1085),
+        "point": (375, 700, 1050, 830),
+        "carry": (370+beat*85, 790+beat*85, 1060, 1090),
+        "bloom": (365, 760, 1050, 1090),
+        "celebrate": (220, 500, 825, 1100),
+        "wave": (220, 500, 825, 1100),
+    }
+    cx,mini_x,squirrel_x,robot_x=cast[action]
+    cx+=math.sin(t*.7)*8
+    mini_x-=math.sin(t*.7)*5
+    present={
+        "discover": (True,True,False,False), "plant": (True,True,True,False),
+        "water": (True,True,True,False), "point": (True,True,False,True),
+        "carry": (True,True,True,False), "bloom": (True,True,True,False),
+        "celebrate": (True,True,True,True), "wave": (True,True,True,True),
+    }[action]
+    pot_x=535+beat*48 if action=="carry" else 535
+    pot_bob=abs(math.sin(t*9))*4 if action=="carry" else 0
+    if action in ("plant","water","carry","bloom"):
+        rounded(d,(pot_x,515+pot_bob,pot_x+119,599+pot_bob),17,"#C47648",outline="#8D4F37",width=5)
+        d.ellipse((pot_x+10,507+pot_bob,pot_x+109,535+pot_bob),fill="#533E30")
         if action=="bloom":
-            stem_y=480
-            d.line((pot_x+54,520,pot_x+54,stem_y),fill="#318748",width=7)
+            bloom=max(0.0,min(1.0,(beat-.24)*1.9))
+            stem_y=493-int(42*bloom)
+            d.line((pot_x+60,520,pot_x+60,stem_y),fill="#318748",width=8)
             for ang in (0,72,144,216,288):
-                a=math.radians(ang); px=pot_x+54+math.cos(a)*18; py=stem_y+math.sin(a)*18
-                d.ellipse((px-10,py-7,px+10,py+7),fill="#FF75A7")
-            d.ellipse((pot_x+45,stem_y-9,pot_x+63,stem_y+9),fill="#FFD34E")
+                a=math.radians(ang); radius=23*bloom
+                px=pot_x+60+math.cos(a)*radius; py=stem_y+math.sin(a)*radius
+                d.ellipse((px-12*bloom,py-9*bloom,px+12*bloom,py+9*bloom),fill="#FF75A7")
+            d.ellipse((pot_x+60-10*bloom,stem_y-10*bloom,pot_x+60+10*bloom,stem_y+10*bloom),fill="#FFD34E")
         elif action!="plant":
-            d.line((pot_x+54,526+pot_bob,pot_x+54,500+pot_bob),fill="#318748",width=5)
-            d.ellipse((pot_x+40,494+pot_bob,pot_x+54,506+pot_bob),fill="#78C86A"); d.ellipse((pot_x+54,496+pot_bob,pot_x+68,508+pot_bob),fill="#78C86A")
-        if action=="discover":
-            # sparkling seed enters with a small hop.
-            sy=507+abs(math.sin(t*5))*14
-            d.ellipse((580,sy-8,596,sy+8),fill="#FFD34E",outline="#FFF3A4",width=2)
-            for a in range(0,360,90):
-                ax=588+math.cos(math.radians(a))*15; ay=sy+math.sin(math.radians(a))*15
-                d.line((ax-3,ay,ax+3,ay),fill="#FFF4A8",width=2)
+            d.line((pot_x+60,520+pot_bob,pot_x+60,492+pot_bob),fill="#318748",width=6)
+            d.ellipse((pot_x+43,487+pot_bob,pot_x+59,499+pot_bob),fill="#78C86A")
+            d.ellipse((pot_x+61,487+pot_bob,pot_x+77,499+pot_bob),fill="#78C86A")
+    gesture=max(0.0,math.sin(math.pi*beat))
+    chintu_emotion="surprised" if action in ("discover","bloom") else ("thinking" if action=="plant" else "happy")
+    mini_emotion="thinking" if action in ("plant","discover") else ("surprised" if action=="bloom" else "happy")
+    scale=1.27 if action not in ("celebrate","wave") else 1.13
+    draw_human(d,cx,595,"chintu",t,chintu_emotion,speaking.get("chintu",False),1,
+               walk=1.0 if action=="carry" else 0,
+               gesture=gesture if action in ("discover","plant","carry","celebrate") else 0,scale=scale)
+    draw_human(d,mini_x,595,"mini",t,mini_emotion,speaking.get("mini",False),-1,
+               walk=1.0 if action=="carry" else 0,
+               gesture=gesture if action in ("plant","water","bloom","celebrate") else 0,scale=scale)
+    if present[2]: draw_squirrel(d,squirrel_x,596,t,action,gesture,speaking.get("golu",False),scale=1.25)
+    if present[3]: draw_robot(d,robot_x,595,t,speaking.get("tinku",False),point=(action=="point"),scale=1.25)
+    # The seed drops into soil, water arcs from Golu's bottle, and the sprout
+    # responds on the shared prop instead of adding unrelated ambient motion.
     if action=="discover":
-        seed_y=514+abs(math.sin(t*4))*8
-        d.ellipse((cx+45,seed_y-10,cx+65,seed_y+10),fill="#FFE269",outline="#FFF8B0",width=2)
-    # Children shift their gaze and shoulders toward the interaction point.
-    face="surprised" if action in ("discover","bloom") else ("thinking" if action=="plant" else "happy")
-    draw_human(d,cx,595,"chintu",t,face,speaking.get("chintu",False),1,
-               walk=1.0 if action=="carry" else 0,gesture=t/duration if action in ("discover","celebrate") else 0,scale=1.0)
-    draw_human(d,mini_x,595,"mini",t,"thinking" if action in ("plant","discover") else "happy",speaking.get("mini",False),-1,
-               walk=1.0 if action=="carry" else 0,gesture=t/duration if action in ("plant","bloom") else 0,scale=1.0)
-    draw_squirrel(d,squirrel_x,596,t,action,t/duration,speaking.get("golu",False))
-    draw_robot(d,robot_x,595,t,speaking.get("tinku",False),point=(action=="point"))
-    # Seed falls into soil during planting; water animation arcs through the air.
+        seed_y=493+abs(math.sin(t*4))*9
+        sx=cx+49
+        d.ellipse((sx-12,seed_y-12,sx+12,seed_y+12),fill="#FFE269",outline="#FFF8B0",width=3)
+        for a in range(0,360,90):
+            ax=sx+math.cos(math.radians(a))*19; ay=seed_y+math.sin(math.radians(a))*19
+            d.line((ax-4,ay,ax+4,ay),fill="#FFF4A8",width=3)
     if action=="plant":
-        sy=470+min(1,t/duration)*50
-        d.ellipse((pot_x+44,sy,pot_x+60,sy+16),fill="#FFD34E")
+        sy=446+min(1,beat)*76
+        d.ellipse((pot_x+52,sy,pot_x+68,sy+17),fill="#FFD34E")
     if action=="water":
-        for i in range(5):
-            drop_t=(t*2+i*.17)%1
-            px=625+drop_t*35; py=481+drop_t*47+math.sin(drop_t*math.pi)*-8
-            d.ellipse((px-3,py-6,px+3,py+6),fill="#49BDE8")
+        for i in range(6):
+            drop_t=(t*1.7+i*.16)%1
+            px=690+drop_t*105; py=435+drop_t*105-math.sin(drop_t*math.pi)*20
+            d.ellipse((px-4,py-8,px+4,py+8),fill="#49BDE8",outline="#D8F6FF")
     if action=="celebrate":
-        for i in range(14):
-            px=(i*93+t*27)%(W); py=220+(i*37)%210+math.sin(t*4+i)*14
-            d.ellipse((px-4,py-4,px+4,py+4),fill=("#FF76A4" if i%2 else "#FFE16A"))
-    # Always-on title badge and per-line subtitle; legible Devanagari.
+        for i in range(18):
+            px=(i*79+t*34)%(W); py=205+(i*37)%240+math.sin(t*4+i)*17
+            d.ellipse((px-5,py-5,px+5,py+5),fill=("#FF76A4" if i%2 else "#FFE16A"))
     rounded(d,(32,24,1248,105),22,"#FFFEF3",outline="#52AED0",width=3)
     d.text((61,40),scene["title"],font=font(38),fill="#173B53",stroke_width=0)
     rounded(d,(70,620,1210,693),18,"#FFFFFF",outline="#FFE16A",width=3)
     d.text((93,632),scene["line"],font=font(26),fill="#263746")
-    # A soft camera push during the middle of each scene adds deliberate motion.
-    zoom=1.0+.025*math.sin(math.pi*min(1,t/max(.1,duration)))
-    if zoom>1.001:
-        nw,nh=int(W*zoom),int(H*zoom)
-        img=img.resize((nw,nh),Image.Resampling.BICUBIC)
-        ox=(nw-W)//2; oy=(nh-H)//2
-        img=img.crop((ox,oy,ox+W,oy+H))
-    return img
+    zoom=1.025+.07*math.sin(math.pi*beat)
+    nw,nh=int(W*zoom),int(H*zoom)
+    img=img.resize((nw,nh),Image.Resampling.BICUBIC)
+    ox=(nw-W)//2; oy=(nh-H)//2
+    return img.crop((ox,oy,ox+W,oy+H))
 
 def run(cmd, **kwargs):
     subprocess.run(cmd, check=True, **kwargs)
@@ -329,6 +344,8 @@ def build_video(topic: str, out_mp4: Path):
     out_mp4.parent.mkdir(parents=True,exist_ok=True)
     proc=subprocess.Popen(["ffmpeg","-y","-f","rawvideo","-pixel_format","rgb24","-video_size",f"{W}x{H}","-framerate",str(FPS),"-i","-","-an","-c:v","libx264","-preset","veryfast","-crf","20","-pix_fmt","yuv420p","-movflags","+faststart",str(out_mp4)],stdin=subprocess.PIPE)
     offset=0.0
+    previous_frame=None
+    transition_frames=round(.42*FPS)
     try:
         for si,(scene,duration) in enumerate(zip(scenes,durations)):
             frames=math.ceil(duration*FPS)
@@ -341,7 +358,14 @@ def build_video(topic: str, out_mp4: Path):
                 if spk in speaking and local_t < duration-0.75:
                     speaking[spk]=int(local_t*8)%3 != 0
                 frame=draw_scene_frame(scene,si,offset+local_t,speaking,duration)
+                if previous_frame is not None and fi < transition_frames:
+                    # Brief cross-dissolves join story beats as a cartoon
+                    # sequence instead of a hard cut between poster-like cards.
+                    alpha=min(1.0,(fi+1)/transition_frames)
+                    frame=Image.blend(previous_frame,frame,alpha)
                 proc.stdin.write(frame.tobytes())
+                if fi == frames-1:
+                    previous_frame=frame.copy()
             offset+=duration
         proc.stdin.close()
         if proc.wait()!=0: raise RuntimeError("ffmpeg failed while encoding animated frames")
