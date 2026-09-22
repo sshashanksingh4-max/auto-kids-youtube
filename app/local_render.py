@@ -159,8 +159,8 @@ def draw_human(d: ImageDraw.ImageDraw, x: float, floor: float, kind: str,
     else:
         d.arc((hx-13*s,hy+8*s,hx+13*s,hy+28*s),5,175,fill="#743B3A",width=max(2,int(3*s)))
 
-def draw_squirrel(d,x,floor,t,action,gesture=0,speaking=False,scale=1.0):
-    s=.74*scale; bob=abs(math.sin(t*6))*6*s; y=floor-bob
+def draw_squirrel(d,x,floor,t,action,gesture=0,speaking=False):
+    bob=abs(math.sin(t*6))*6; y=floor-bob
     d.ellipse((x-36,y-7,x+36,y+5),fill="#4E8A4E")
     # curled tail swishes, with a cream inner patch
     d.ellipse((x+12,y-91,x+79,y-24),fill="#9B6747")
@@ -181,8 +181,8 @@ def draw_squirrel(d,x,floor,t,action,gesture=0,speaking=False,scale=1.0):
         d.line((x+20,y-49,x+47,y-31),fill="#9B6747",width=8)
         d.arc((x+40,y-30,x+68,y-2),180,360,fill="#57BFE8",width=5)
 
-def draw_robot(d,x,floor,t,speaking,point=False,scale=1.0):
-    s=.76*scale; y=floor+math.sin(t*4)*2*s
+def draw_robot(d,x,floor,t,speaking,point=False):
+    y=floor+math.sin(t*4)*2
     d.ellipse((x-36,floor-7,x+36,floor+5),fill="#4E8A4E")
     rounded(d,(x-28,y-66,x+28,y-9),13,"#EAF5F9",outline="#6CA8C5",width=3)
     rounded(d,(x-33,y-119,x+33,y-61),15,"#F8FCFF",outline="#6CA8C5",width=3)
@@ -203,6 +203,16 @@ def draw_robot(d,x,floor,t,speaking,point=False,scale=1.0):
     else:
         d.line((x+22,y-50,x+35,y-27+math.sin(t*4)*7),fill="#D7EBF5",width=8)
         d.ellipse((x+30,y-31+math.sin(t*4)*7,x+41,y-20+math.sin(t*4)*7),fill="#F39A42")
+
+def draw_scaled_sprite(img, anchor_x, anchor_y, bounds, scale, painter):
+    """Draw a small rig on transparency, scale it, and keep its feet planted."""
+    layer=Image.new("RGBA",(W,H),(0,0,0,0))
+    painter(ImageDraw.Draw(layer))
+    sprite=layer.crop(bounds)
+    sprite=sprite.resize((round(sprite.width*scale),round(sprite.height*scale)),Image.Resampling.LANCZOS)
+    left=round(anchor_x+(bounds[0]-anchor_x)*scale)
+    top=round(anchor_y+(bounds[1]-anchor_y)*scale)
+    img.paste(sprite,(left,top),sprite)
 
 def draw_scene_frame(scene, scene_index, t, speaking, duration):
     action=scene["action"]
@@ -259,8 +269,14 @@ def draw_scene_frame(scene, scene_index, t, speaking, duration):
     draw_human(d,mini_x,595,"mini",t,mini_emotion,speaking.get("mini",False),-1,
                walk=1.0 if action=="carry" else 0,
                gesture=gesture if action in ("plant","water","bloom","celebrate") else 0,scale=scale)
-    if present[2]: draw_squirrel(d,squirrel_x,596,t,action,gesture,speaking.get("golu",False),scale=1.25)
-    if present[3]: draw_robot(d,robot_x,595,t,speaking.get("tinku",False),point=(action=="point"),scale=1.25)
+    if present[2]:
+        draw_scaled_sprite(img,squirrel_x,596,(squirrel_x-40,471,squirrel_x+85,604),1.28,
+            lambda sd: draw_squirrel(sd,squirrel_x,596,t,action,gesture,speaking.get("golu",False)))
+        d=ImageDraw.Draw(img)
+    if present[3]:
+        draw_scaled_sprite(img,robot_x,595,(robot_x-44,445,robot_x+44,603),1.24,
+            lambda sd: draw_robot(sd,robot_x,595,t,speaking.get("tinku",False),point=(action=="point")))
+        d=ImageDraw.Draw(img)
     # The seed drops into soil, water arcs from Golu's bottle, and the sprout
     # responds on the shared prop instead of adding unrelated ambient motion.
     if action=="discover":
