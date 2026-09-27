@@ -81,33 +81,42 @@ class LudoView extends View {
         float w=getWidth(), h=getHeight();
         drawBlueBackground(c,w,h);
 
-        float side=118*density;
-        float size=Math.min(h-24*density, w-2*side-24*density);
-        boardLeft=(w-size)/2f; boardTop=(h-size)/2f; cell=size/15f;
+        // Portrait 9:16 layout: the board stays horizontal in the middle,
+        // with the active player's dice immediately beside that player's home.
+        float side=Math.max(54*density, Math.min(86*density,w*.105f));
+        float maxBoardW=w-side*2-18*density;
+        float maxBoardH=h*.34f;
+        float size=Math.min(maxBoardW,maxBoardH);
+        boardLeft=(w-size)/2f;
+        boardTop=(h-size)/2f;
+        cell=size/15f;
         boardRect.set(boardLeft,boardTop,boardLeft+size,boardTop+size);
 
-        drawSidePanel(c,RED,0,side-10*density);
-        drawSidePanel(c,YELLOW,w-side+10*density,side-10*density);
         drawBoard(c);
         drawTokens(c);
-        drawTurnOverlay(c,w,h);
+        drawPlayerPanel(c,RED,boardLeft-side-4*density,boardTop+size*.32f);
+        drawPlayerPanel(c,YELLOW,boardLeft+size+4*density,boardTop+size*.32f);
+        drawTurnStatus(c,w,h);
     }
 
     void drawBlueBackground(Canvas c,float w,float h){
-        c.drawColor(Color.rgb(5,49,115));
+        c.drawColor(Color.rgb(4,48,112));
         p.setStyle(Paint.Style.FILL);
-        for(float y=0;y<h;y+=34*density){
-            for(float x=0;x<w;x+=34*density){
-                int ix=(int)(x/(34*density)), iy=(int)(y/(34*density));
-                p.setColor(((ix+iy)&1)==0?Color.rgb(8,61,135):Color.rgb(6,54,123));
-                c.drawRect(x,y,x+34*density,y+34*density,p);
+        float s=42*density;
+        for(float y=0;y<h;y+=s){
+            for(float x=0;x<w;x+=s){
+                int ix=(int)(x/s), iy=(int)(y/s);
+                p.setColor(((ix+iy)&1)==0?Color.rgb(7,61,132):Color.rgb(5,54,122));
+                c.drawRect(x,y,x+s,y+s,p);
             }
         }
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(1.2f); p.setColor(Color.argb(80,255,255,255));
-        for(float y=8*density;y<h;y+=68*density) for(float x=8*density;x<w;x+=68*density){
-            c.drawCircle(x,y,15*density,p);
-            c.drawCircle(x+8*density,y+8*density,5*density,p);
-        }
+        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(1.2f);
+        p.setColor(Color.argb(45,255,255,255));
+        for(float y=20*density;y<h;y+=84*density)
+            for(float x=18*density;x<w;x+=84*density){
+                c.drawCircle(x,y,18*density,p);
+                c.drawCircle(x+10*density,y+10*density,6*density,p);
+            }
     }
 
     void fill(Canvas c,int color,float l,float t,float r,float b){
@@ -225,48 +234,47 @@ class LudoView extends View {
         return new float[]{X(7)+cell,Y(7)+cell};
     }
 
-    void drawSidePanel(Canvas c,int q,float left,float width){
-        float h=getHeight();
+    void drawPlayerPanel(Canvas c,int q,float left,float cy){
+        float panelW=Math.max(54*density,Math.min(86*density,getWidth()*.105f));
+        float top=cy-86*density, bottom=cy+86*density;
         boolean active=(turn==q);
-        float top=h*.17f, bottom=h*.83f;
+        // The reference shows the control beside the colored home, not in a
+        // separate top/bottom player bar.
         p.setStyle(Paint.Style.FILL);
-        p.setColor(Color.argb(active?235:175,255,255,255));
-        c.drawRoundRect(left,top,left+width,bottom,18*density,18*density,p);
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(active?3:1.5f);
-        p.setColor(COLORS[q]); c.drawRoundRect(left,top,left+width,bottom,18*density,18*density,p);
+        p.setColor(Color.argb(active?245:185,255,255,255));
+        c.drawRoundRect(left,top,left+panelW,bottom,9*density,9*density,p);
+        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(2*density);
+        p.setColor(COLORS[q]); c.drawRoundRect(left,top,left+panelW,bottom,9*density,9*density,p);
 
+        // Small player marker at the top, matching the reference.
         p.setStyle(Paint.Style.FILL); p.setColor(COLORS[q]);
-        c.drawRoundRect(left+8*density,top+8*density,left+width-8*density,top+54*density,12*density,12*density,p);
-        p.setColor(Color.WHITE); p.setTextAlign(Paint.Align.CENTER); p.setTextSize(13*density);
-        c.drawText(q==RED?"Player 1":"Player 2",left+width/2,top+37*density,p);
+        c.drawRoundRect(left+6*density,top+6*density,left+panelW-6*density,top+38*density,6*density,6*density,p);
+        p.setColor(Color.WHITE); p.setTextAlign(Paint.Align.CENTER); p.setTextSize(9*density);
+        c.drawText(q==RED?"P1":"P2",left+panelW/2,top+27*density,p);
 
-        float cy=top+108*density;
+        // Dice is shown only for the two actual players. It is always beside
+        // the active player's home, exactly like the reference.
+        float dy=cy+25*density;
         p.setStyle(Paint.Style.FILL); p.setColor(Color.WHITE);
         p.setShadowLayer(5,0,2,Color.argb(100,0,0,0));
-        c.drawRoundRect(left+18*density,cy-28*density,left+width-18*density,cy+28*density,12*density,12*density,p);
+        c.drawRoundRect(left+7*density,dy-30*density,left+panelW-7*density,dy+30*density,7*density,7*density,p);
         p.clearShadowLayer();
-        drawDie(c,left+width/2,cy,q==turn?dice:0);
+        drawDie(c,left+panelW/2,dy,q==turn?dice:0);
 
-        float by=cy+82*density;
+        // Roll indicator.
         p.setStyle(Paint.Style.FILL); p.setColor(COLORS[q]);
-        c.drawRoundRect(left+14*density,by-22*density,left+width-14*density,by+22*density,14*density,14*density,p);
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(2); p.setColor(Color.WHITE);
-        c.drawCircle(left+width/2,by,13*density,p);
-        p.setStyle(Paint.Style.FILL); p.setColor(Color.WHITE);
-        p.setTextSize(11*density); c.drawText("●",left+width/2,by+4*density,p);
-
-        p.setTextSize(11*density); p.setColor(Color.WHITE);
-        String status=gameOver?(q==turn?"WINNER":""):active?(rolled?"MOVE TOKEN":"YOUR TURN"):"WAIT";
-        c.drawText(status,left+width/2,bottom-18*density,p);
+        c.drawRoundRect(left+10*density,bottom-35*density,left+panelW-10*density,bottom-9*density,6*density,6*density,p);
+        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(1.5f); p.setColor(Color.WHITE);
+        c.drawCircle(left+panelW/2,bottom-22*density,7*density,p);
     }
 
-    void drawTurnOverlay(Canvas c,float w,float h){
-        float y=h-22*density;
+    void drawTurnStatus(Canvas c,float w,float h){
         p.setStyle(Paint.Style.FILL);
-        p.setColor(Color.argb(205,0,25,70));
-        c.drawRoundRect(w/2-125*density,y-24*density,w/2+125*density,y+6*density,15*density,15*density,p);
+        p.setColor(Color.argb(190,0,25,70));
+        c.drawRoundRect(w*.18f,h*.79f,w*.82f,h*.825f,16*density,16*density,p);
         p.setColor(Color.WHITE); p.setTextAlign(Paint.Align.CENTER); p.setTextSize(12*density);
-        c.drawText(gameOver?message:(rolled?"Tap a highlighted token":message),w/2,y-4*density,p);
+        String s=gameOver?message:(rolled?"SELECT A HIGHLIGHTED TOKEN":message);
+        c.drawText(s,w/2,h*.812f,p);
     }
 
     void drawDie(Canvas c,float cx,float cy,int n){
@@ -374,10 +382,17 @@ class LudoView extends View {
         if(e.getAction()!=MotionEvent.ACTION_UP) return true;
         float x=e.getX(), y=e.getY();
         float w=getWidth(), h=getHeight();
-        float side=118*density;
+        float side=Math.max(54*density,Math.min(86*density,w*.105f));
 
-        if(turn==RED && x<side && y>h*.20f && y<h*.70f){ roll(); return true; }
-        if(turn==YELLOW && x>w-side && y>h*.20f && y<h*.70f){ roll(); return true; }
+        // Only the active player's side control rolls. There is never a
+        // green/blue dice because this build is strictly a 2-player game.
+        float boardSize=cell*15f;
+        float panelY=boardTop+boardSize*.32f;
+        float panelTop=panelY-86*density, panelBottom=panelY+86*density;
+        if(turn==RED && x>=boardLeft-side-6*density && x<=boardLeft+2*density &&
+           y>=panelTop && y<=panelBottom){ roll(); return true; }
+        if(turn==YELLOW && x>=boardLeft+boardSize-2*density && x<=boardLeft+boardSize+side+6*density &&
+           y>=panelTop && y<=panelBottom){ roll(); return true; }
 
         if(rolled && !gameOver){
             for(int t=0;t<4;t++){
@@ -388,9 +403,7 @@ class LudoView extends View {
                 }
             }
         }
-        if(gameOver){
-            reset(); return true;
-        }
+        if(gameOver){ reset(); return true; }
         return true;
     }
 
