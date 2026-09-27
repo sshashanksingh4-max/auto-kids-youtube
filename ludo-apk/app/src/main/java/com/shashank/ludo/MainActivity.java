@@ -166,7 +166,6 @@ class LudoView extends View {
     void drawTokens(Canvas c){
         for(int q=0;q<players;q++){
             for(int t=0;t<4;t++){
-                if(token[q][t]==-1) continue;
                 float[] pos=tokenPosition(q,t);
                 boolean selectable=rolled && q==turn && legal(q,t,dice) && !gameOver;
                 p.setStyle(Paint.Style.FILL);
@@ -190,10 +189,10 @@ class LudoView extends View {
     float[] tokenPosition(int q,int t){
         int prog=token[q][t];
         if(prog==-1){
-            float[][] home={{3.0f,3.0f},{3.0f,3.0f},{12.0f,12.0f},{3.0f,12.0f}};
+            float[][] home={{1.8f,1.8f},{10.8f,1.8f},{10.8f,10.8f},{1.8f,10.8f}};
             float bx=home[q][0], by=home[q][1];
-            float[][] off={{-.65f,-.65f},{.65f,-.65f},{-.65f,.65f},{.65f,.65f}};
-            return new float[]{X((int)bx+off[t][0])+cell*.5f,Y((int)by+off[t][1])+cell*.5f};
+            float[][] off={{0f,0f},{2.4f,0f},{0f,2.4f},{2.4f,2.4f}};
+            return new float[]{X(bx+off[t]),Y(by+off[t][1])};
         }
         if(prog<52){
             int idx=(startIndex[q]+prog)%52;
