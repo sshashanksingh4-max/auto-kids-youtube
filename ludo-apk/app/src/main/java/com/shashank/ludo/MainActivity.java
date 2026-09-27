@@ -282,7 +282,7 @@ class LudoView extends View {
         for(int t=0;t<4;t++) if(legal(turn,t,dice)){count++;only=t;}
         message=NAMES[turn]+": choose a token";
         invalidate();
-        if(count==1) postDelayed(()->moveToken(only),300);
+        if(count==1){ final int selected=only; postDelayed(()->moveToken(selected),300); }
     }
 
     void moveToken(int t){
