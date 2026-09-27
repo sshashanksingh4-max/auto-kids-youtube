@@ -96,8 +96,8 @@ class LudoView extends View {
     void stroke(Canvas c,int color,float width,float l,float t,float r,float b){
         p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(width); p.setColor(color); c.drawRect(l,t,r,b,p);
     }
-    float X(int gx){return boardLeft+gx*cell;}
-    float Y(int gy){return boardTop+gy*cell;}
+    float X(float gx){return boardLeft+gx*cell;}
+    float Y(float gy){return boardTop+gy*cell;}
 
     void drawBoard(Canvas c){
         // Outer board / four colored homes.
